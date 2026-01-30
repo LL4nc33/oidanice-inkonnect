@@ -1,6 +1,7 @@
 import logging
 from contextlib import asynccontextmanager
 from collections.abc import AsyncIterator
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -34,7 +35,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     await get_translate().cleanup()
 
 
-app = FastAPI(title="inkonnect", version="0.1.0", lifespan=lifespan)
+_version_file = Path(__file__).resolve().parent.parent / "VERSION"
+_version = _version_file.read_text().strip() if _version_file.exists() else "0.0.0"
+
+app = FastAPI(title="inkonnect", version=_version, lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
