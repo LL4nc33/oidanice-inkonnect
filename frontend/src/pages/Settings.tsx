@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Card, Select, Divider } from '@oidanice/kindle-ui'
+import { Card, Select, Divider } from '@oidanice/ink-ui'
 import { getConfig } from '../api/inkonnect'
 
 interface SettingsProps {

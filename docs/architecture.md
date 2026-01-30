@@ -48,6 +48,6 @@ Factory functions in `providers/__init__.py` create the correct provider based o
 - `App.tsx` – Layout shell with page routing via `useState`
 - `pages/Home.tsx` – Main recording + pipeline UI
 - `pages/Settings.tsx` – Backend info display
-- `components/` – Reusable UI components built on kindle-ui
+- `components/` – Reusable UI components built on ink-ui
 - `hooks/` – Audio recording and settings persistence
 - `api/` – Typed fetch wrapper for all backend endpoints

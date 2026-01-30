@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Progress } from '@oidanice/kindle-ui'
+import { Progress } from '@oidanice/ink-ui'
 import { pipeline } from '../api/inkonnect'
 import { useAudioRecorder } from '../hooks/useAudioRecorder'
 import { RecordButton } from '../components/RecordButton'

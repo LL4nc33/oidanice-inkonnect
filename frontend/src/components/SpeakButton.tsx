@@ -1,5 +1,5 @@
 import { useCallback, useRef } from 'react'
-import { Button } from '@oidanice/kindle-ui'
+import { Button } from '@oidanice/ink-ui'
 
 interface SpeakButtonProps {
   audioBase64: string | null

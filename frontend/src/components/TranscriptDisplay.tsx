@@ -1,4 +1,4 @@
-import { Card, Divider } from '@oidanice/kindle-ui'
+import { Card, Divider } from '@oidanice/ink-ui'
 
 interface TranscriptDisplayProps {
   originalText: string | null

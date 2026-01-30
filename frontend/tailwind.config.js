@@ -1,11 +1,11 @@
-const kindlePreset = require('@oidanice/kindle-ui/preset')
+const inkPreset = require('@oidanice/ink-ui/preset')
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  presets: [kindlePreset],
+  presets: [inkPreset],
   content: [
     './index.html',
     './src/**/*.{ts,tsx}',
-    './node_modules/@oidanice/kindle-ui/dist/**/*.{js,mjs}',
+    './node_modules/@oidanice/ink-ui/dist/**/*.{js,mjs}',
   ],
 }

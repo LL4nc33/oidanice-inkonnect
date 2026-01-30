@@ -25,7 +25,7 @@
 - **Speech-to-Text** -- faster-whisper with automatic language detection for 99 languages
 - **Text-to-Speech** -- Piper TTS with natural-sounding voices
 - **Translation** -- Ollama LLM, runs locally, GDPR-compliant
-- **Kindle-inspired UI** -- monochrome design with dark mode, serif typography, no distractions
+- **Ink-inspired UI** -- monochrome design with dark mode, serif typography, no distractions
 - **Installable PWA** -- add to home screen on mobile with browser-specific install prompts
 - **Provider pattern** -- swap local and cloud providers interchangeably
 - **One-command setup** -- Docker Compose brings up all services in seconds
@@ -74,7 +74,7 @@ Open [http://localhost:8000](http://localhost:8000) and start recording.
 | Layer | Technology |
 |-------|------------|
 | Frontend | React 18, TypeScript, Vite, Tailwind CSS |
-| UI | @oidanice/kindle-ui |
+| UI | @oidanice/ink-ui |
 | Backend | FastAPI, Python 3.12 |
 | STT | faster-whisper (CTranslate2) |
 | TTS | Piper TTS |

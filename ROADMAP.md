@@ -6,7 +6,7 @@
 - [x] Text-to-Speech (Piper)
 - [x] Translation (Ollama)
 - [x] Full Pipeline endpoint
-- [x] React PWA with kindle-ui
+- [x] React PWA with ink-ui
 - [x] Docker Compose deployment
 - [ ] Static file serving in production
 - [ ] End-to-end testing

@@ -1,4 +1,4 @@
-import { Select, Button } from '@oidanice/kindle-ui'
+import { Select, Button } from '@oidanice/ink-ui'
 
 const LANGUAGES = [
   { code: '', label: 'Auto-detect' },

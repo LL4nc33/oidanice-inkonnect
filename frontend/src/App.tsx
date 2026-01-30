@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Layout, DarkModeToggle, InstallPrompt, Button } from '@oidanice/kindle-ui'
+import { Layout, DarkModeToggle, InstallPrompt, Button } from '@oidanice/ink-ui'
 import { useSettings } from './hooks/useSettings'
 import { Home } from './pages/Home'
 import { Settings } from './pages/Settings'

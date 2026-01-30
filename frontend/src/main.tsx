@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import '@oidanice/kindle-ui/css'
+import '@oidanice/ink-ui/css'
 import './index.css'
 import { App } from './App'
 
