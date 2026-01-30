@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.1.0-black?style=flat-square" alt="Version" />
+  <img src="https://img.shields.io/badge/version-0.0.1a-black?style=flat-square" alt="Version" />
   <img src="https://img.shields.io/badge/docker-compose-black?style=flat-square&logo=docker&logoColor=white" alt="Docker" />
   <img src="https://img.shields.io/badge/whisper-AI-black?style=flat-square" alt="Whisper" />
   <img src="https://img.shields.io/badge/PWA-installable-black?style=flat-square" alt="PWA" />
@@ -83,4 +83,4 @@ Open [http://localhost:8000](http://localhost:8000) and start recording.
 
 ---
 
-Built by [OidaNice](https://github.com/LL4nc33) -- powered by faster-whisper -- built with [Claude Workflow Engine](https://github.com/LL4nc33/claude-workflow-engine) -- v0.1.0
+Built by [OidaNice](https://github.com/LL4nc33) -- powered by faster-whisper -- built with [Claude Workflow Engine](https://github.com/LL4nc33/claude-workflow-engine) -- v0.0.1a
