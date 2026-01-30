@@ -36,7 +36,7 @@ export function LanguageSelector({ sourceLang, targetLang, onSourceChange, onTar
   return (
     <div className="flex items-end gap-2">
       <div className="flex-1">
-        <Select label="From" value={sourceLang} onChange={(e) => onSourceChange(e.target.value)}>
+        <Select label="From" value={sourceLang} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onSourceChange(e.target.value)}>
           {LANGUAGES.map((l) => (
             <option key={l.code} value={l.code}>{l.label}</option>
           ))}
@@ -46,7 +46,7 @@ export function LanguageSelector({ sourceLang, targetLang, onSourceChange, onTar
         ⇄
       </Button>
       <div className="flex-1">
-        <Select label="To" value={targetLang} onChange={(e) => onTargetChange(e.target.value)}>
+        <Select label="To" value={targetLang} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onTargetChange(e.target.value)}>
           {TARGET_LANGUAGES.map((l) => (
             <option key={l.code} value={l.code}>{l.label}</option>
           ))}

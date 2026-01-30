@@ -1,5 +1,9 @@
 # Stage 1: Frontend build
 FROM node:20-slim AS frontend-build
+WORKDIR /app
+COPY kindle-ui/ ./kindle-ui/
+WORKDIR /app/kindle-ui
+RUN npm install
 WORKDIR /app/frontend
 COPY frontend/package.json frontend/package-lock.json* ./
 RUN npm install

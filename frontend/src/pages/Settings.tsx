@@ -33,7 +33,7 @@ export function Settings({ ttsEnabled, onTtsChange }: SettingsProps) {
         <Select
           label="Text-to-Speech"
           value={ttsEnabled ? 'on' : 'off'}
-          onChange={(e) => onTtsChange(e.target.value === 'on')}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onTtsChange(e.target.value === 'on')}
         >
           <option value="on">Enabled</option>
           <option value="off">Disabled</option>

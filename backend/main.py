@@ -21,17 +21,22 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     logger.info("Initializing providers (device=%s)", settings.device)
 
     stt_provider = create_stt(settings)
-    tts_provider = create_tts(settings)
+    try:
+        tts_provider = create_tts(settings)
+    except Exception as e:
+        logger.warning("TTS provider unavailable: %s", e)
+        tts_provider = None
     translate_provider = create_translate(settings)
 
     init_providers(settings, stt_provider, tts_provider, translate_provider)
-    logger.info("Providers ready")
+    logger.info("Providers ready (tts=%s)", "ok" if tts_provider else "disabled")
 
     yield
 
     logger.info("Shutting down providers")
     await get_stt().cleanup()
-    await get_tts().cleanup()
+    if tts_provider:
+        await get_tts().cleanup()
     await get_translate().cleanup()
 
 

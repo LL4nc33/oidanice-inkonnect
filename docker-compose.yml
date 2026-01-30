@@ -2,27 +2,16 @@ services:
   inkonnect:
     build: .
     ports:
-      - "8000:8000"
+      - "8100:8000"
     environment:
       - DEVICE=${DEVICE:-auto}
       - WHISPER_MODEL=${WHISPER_MODEL:-small}
       - PIPER_VOICE=${PIPER_VOICE:-de_DE-thorsten-high}
       - OLLAMA_MODEL=${OLLAMA_MODEL:-ministral:3b}
-      - OLLAMA_URL=http://ollama:11434
+      - OLLAMA_URL=${OLLAMA_URL:-http://llm00.node:11434}
     volumes:
       - models:/app/models
-    depends_on:
-      - ollama
-    restart: unless-stopped
-
-  ollama:
-    image: ollama/ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama-data:/root/.ollama
     restart: unless-stopped
 
 volumes:
   models:
-  ollama-data:
