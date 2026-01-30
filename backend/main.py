@@ -5,6 +5,8 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 from backend.config import Settings
 from backend.dependencies import init_providers, get_stt, get_tts, get_translate
@@ -58,3 +60,11 @@ app.include_router(tts.router)
 app.include_router(translate.router)
 app.include_router(pipeline.router)
 app.include_router(config.router)
+
+_static_dir = Path(__file__).resolve().parent.parent / "static"
+if _static_dir.exists():
+    @app.get("/")
+    async def serve_index():
+        return FileResponse(_static_dir / "index.html")
+
+    app.mount("/", StaticFiles(directory=str(_static_dir)), name="static")
