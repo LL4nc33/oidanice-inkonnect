@@ -1,6 +1,10 @@
 # inkonnect
 
 <p align="center">
+  <img src="frontend/public/favicon.svg" alt="inkonnect" width="64" height="64" />
+</p>
+
+<p align="center">
   <strong>Accessible communication PWA.</strong><br>
   Speak in your language, get text and audio in another. Local, private, CPU-first.
 </p>
