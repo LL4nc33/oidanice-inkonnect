@@ -33,6 +33,22 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     init_providers(settings, stt_provider, tts_provider, translate_provider)
     logger.info("Providers ready (tts=%s)", "ok" if tts_provider else "disabled")
 
+    # Initialize database if history is enabled
+    if settings.history_enabled:
+        try:
+            from backend.database.connection import init_db, get_engine
+            await init_db(settings.database_url)
+            # Run migrations on startup
+            from sqlalchemy import text
+            async with get_engine().begin() as conn:
+                await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+            from backend.database.models import Base
+            async with get_engine().begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+            logger.info("Database initialized")
+        except Exception as e:
+            logger.warning("Database initialization failed: %s (history will be disabled)", e)
+
     yield
 
     logger.info("Shutting down providers")
@@ -40,6 +56,14 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     if tts_provider:
         await get_tts().cleanup()
     await get_translate().cleanup()
+
+    # Close database
+    if settings.history_enabled:
+        try:
+            from backend.database.connection import close_db
+            await close_db()
+        except Exception:
+            pass
 
 
 _version_file = Path(__file__).resolve().parent.parent / "VERSION"

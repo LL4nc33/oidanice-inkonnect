@@ -40,4 +40,16 @@ class Settings(BaseSettings):
     gateway_rate_limit: int = 60        # requests per minute per key
     gateway_max_audio_mb: int = 25      # max upload size in MB
 
+    # Database
+    database_url: str = "postgresql+asyncpg://inkonnect:inkonnect_dev@localhost:5432/inkonnect"
+
+    # Chat History
+    history_enabled: bool = True
+    audio_storage_path: str = "data/audio"
+
+    # Embeddings
+    embedding_provider: str = "ollama"
+    embedding_model: str = "nomic-embed-text"
+    embedding_url: str = "http://localhost:11434"
+
     model_config = {"env_file": ".env"}

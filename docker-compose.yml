@@ -11,11 +11,39 @@ services:
       - OLLAMA_URL=${OLLAMA_URL:-http://llm00.node:11434}
       - CHATTERBOX_URL=${CHATTERBOX_URL:-http://gpu00.node:4123}
       - CHATTERBOX_VOICE=${CHATTERBOX_VOICE:-default}
+      - DATABASE_URL=postgresql+asyncpg://inkonnect:${POSTGRES_PASSWORD:-inkonnect_dev}@postgres:5432/inkonnect
+      - HISTORY_ENABLED=${HISTORY_ENABLED:-true}
+      - AUDIO_STORAGE_PATH=/app/data/audio
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-nomic-embed-text}
+      - EMBEDDING_URL=${EMBEDDING_URL:-http://llm00.node:11434}
     volumes:
       - models:/app/models
       - piper-voices:/app/piper-voices
+      - audio-data:/app/data/audio
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: inkonnect
+      POSTGRES_USER: inkonnect
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-inkonnect_dev}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U inkonnect"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
 
 volumes:
   models:
   piper-voices:
+  audio-data:
+  postgres_data:

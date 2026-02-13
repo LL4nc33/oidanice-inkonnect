@@ -22,6 +22,7 @@ COPY backend/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY VERSION ./
+COPY alembic.ini ./
 COPY backend/ ./backend/
 COPY --from=frontend-build /app/frontend/dist ./static/
 
@@ -33,8 +34,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf 
       "https://huggingface.co/rhasspy/piper-voices/resolve/main/de/de_DE/thorsten/high/de_DE-thorsten-high.onnx.json"
 
 RUN useradd -r -m -s /bin/false appuser && \
-    mkdir -p /app/models && \
-    chown -R appuser:appuser /app/models /app/piper-voices
+    mkdir -p /app/models /app/data/audio && \
+    chown -R appuser:appuser /app/models /app/piper-voices /app/data
 USER appuser
 
 ENV HF_HOME=/app/models/huggingface
