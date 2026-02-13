@@ -17,6 +17,12 @@ def create_tts(settings: Settings) -> TTSProvider:
     if settings.tts_provider == "local":
         from backend.providers.tts.piper_local import PiperLocalProvider
         return PiperLocalProvider(voice=settings.piper_voice)
+    if settings.tts_provider == "chatterbox":
+        from backend.providers.tts.chatterbox_remote import ChatterboxRemoteProvider
+        return ChatterboxRemoteProvider(
+            base_url=settings.chatterbox_url,
+            voice=settings.chatterbox_voice,
+        )
     raise ValueError(f"Unknown TTS provider: {settings.tts_provider}")
 
 
@@ -26,5 +32,12 @@ def create_translate(settings: Settings) -> TranslateProvider:
         return OllamaLocalProvider(
             model=settings.ollama_model,
             base_url=settings.ollama_url,
+        )
+    if settings.translate_provider == "openai":
+        from backend.providers.translate.openai_compat import OpenAICompatProvider
+        return OpenAICompatProvider(
+            model=settings.openai_compat_model,
+            base_url=settings.openai_compat_url,
+            api_key=settings.openai_api_key or "",
         )
     raise ValueError(f"Unknown translate provider: {settings.translate_provider}")

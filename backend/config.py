@@ -12,11 +12,17 @@ class Settings(BaseSettings):
     # TTS
     tts_provider: str = "local"
     piper_voice: str = "de_DE-thorsten-high"
+    chatterbox_url: str = "http://gpu00.node:4123"
+    chatterbox_voice: str = "default"
 
     # Translate
     translate_provider: str = "local"
-    ollama_model: str = "ministral:3b"
+    ollama_model: str = "ministral-3:3b"
     ollama_url: str = "http://localhost:11434"
+
+    # OpenAI-compatible translation
+    openai_compat_url: str = ""
+    openai_compat_model: str = ""
 
     # Optional cloud keys
     openai_api_key: str | None = None

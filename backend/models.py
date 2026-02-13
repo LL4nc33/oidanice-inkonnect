@@ -15,6 +15,7 @@ class TTSRequest(BaseModel):
     text: str
     lang: str = "de"
     voice: str | None = None
+    tts_provider: str | None = None
 
 
 class TTSResponse(BaseModel):
@@ -38,6 +39,7 @@ class PipelineRequest(BaseModel):
     target_lang: str = "en"
     tts: bool = True
     voice: str | None = None
+    tts_provider: str | None = None
 
 
 class PipelineResponse(BaseModel):
@@ -56,3 +58,37 @@ class ConfigResponse(BaseModel):
     whisper_model: str
     piper_voice: str
     ollama_model: str
+    chatterbox_url: str
+    chatterbox_voice: str
+
+
+class ModelsResponse(BaseModel):
+    models: list[str]
+
+
+class PiperVoicesResponse(BaseModel):
+    voices: list[str]
+
+
+class PiperDownloadRequest(BaseModel):
+    voice: str
+
+
+class PiperDownloadResponse(BaseModel):
+    success: bool
+    message: str
+
+
+class ChatterboxVoice(BaseModel):
+    name: str
+    language: str | None = None
+
+
+class ChatterboxVoicesResponse(BaseModel):
+    voices: list[ChatterboxVoice]
+
+
+class ChatterboxUploadResponse(BaseModel):
+    success: bool
+    name: str
+    message: str
