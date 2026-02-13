@@ -1,8 +1,14 @@
-import { useState, useEffect, useCallback } from 'react'
-import { Card, Select, Input, Divider, Button } from '@oidanice/ink-ui'
-import { getConfig, getOllamaModels, getOpenAIModels, getPiperVoices, downloadPiperVoice, getGpuStatus, getChatterboxVoices, getElevenLabsVoices, GpuStatus, ChatterboxVoice, ElevenLabsVoice } from '../api/inkonnect'
-import { SearchSelect } from '../components/SearchSelect'
-import { ChatterboxVoiceManager } from '../components/ChatterboxVoiceManager'
+import { useEffect, useState } from 'react'
+import { Card, Divider } from '@oidanice/ink-ui'
+import { getConfig } from '../api/inkonnect'
+import { useProviderHealth } from '../hooks/useProviderHealth'
+import { SettingsNav } from '../components/settings/SettingsNav'
+import { ProviderStatusGrid } from '../components/settings/ProviderStatusGrid'
+import { GpuMonitor } from '../components/settings/GpuMonitor'
+import { CloudUsage } from '../components/settings/CloudUsage'
+import { BenchmarkWidget } from '../components/settings/BenchmarkWidget'
+import { TTSConfig } from '../components/settings/TTSConfig'
+import { TranslateConfig } from '../components/settings/TranslateConfig'
 
 interface SettingsProps {
   ttsEnabled: boolean
@@ -55,27 +61,6 @@ interface SettingsProps {
   onElevenlabsSimilarityChange: (v: number) => void
 }
 
-function RangeSlider({ label, value, min, max, step, onChange }: {
-  label: string; value: number; min: number; max: number; step: number
-  onChange: (v: number) => void
-}) {
-  return (
-    <label className="flex items-center gap-2 font-mono text-xs" style={{ color: 'var(--text-secondary)' }}>
-      <span className="w-24 shrink-0">{label}</span>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        className="flex-1"
-        onChange={(e) => onChange(parseFloat(e.target.value))}
-      />
-      <span className="w-10 text-right">{value.toFixed(2)}</span>
-    </label>
-  )
-}
-
 interface BackendConfig {
   stt_provider: string
   tts_provider: string
@@ -88,432 +73,175 @@ interface BackendConfig {
   chatterbox_voice: string
 }
 
-export function Settings({
-  ttsEnabled, onTtsChange,
-  ttsProvider, onTtsProviderChange,
-  piperVoice, onPiperVoiceChange,
-  chatterboxVoice, onChatterboxVoiceChange,
-  chatterboxUrl, onChatterboxUrlChange,
-  ollamaModel, onOllamaModelChange,
-  ollamaUrl, onOllamaUrlChange,
-  translateProvider, onTranslateProviderChange,
-  openaiUrl, onOpenaiUrlChange,
-  openaiKey, onOpenaiKeyChange,
-  openaiModel, onOpenaiModelChange,
-  chatterboxExaggeration, onChatterboxExaggerationChange,
-  chatterboxCfgWeight, onChatterboxCfgWeightChange,
-  chatterboxTemperature, onChatterboxTemperatureChange,
-  autoPlay, onAutoPlayChange,
-  ollamaKeepAlive, onOllamaKeepAliveChange,
-  ollamaContextLength, onOllamaContextLengthChange,
-  deepLKey, onDeepLKeyChange,
-  deepLFree, onDeepLFreeChange,
-  elevenlabsKey, onElevenlabsKeyChange,
-  elevenlabsModel, onElevenlabsModelChange,
-  elevenlabsVoiceId, onElevenlabsVoiceIdChange,
-  elevenlabsStability, onElevenlabsStabilityChange,
-  elevenlabsSimilarity, onElevenlabsSimilarityChange,
-}: SettingsProps) {
+export function Settings(props: SettingsProps) {
   const [config, setConfig] = useState<BackendConfig | null>(null)
-  const [gpuStatus, setGpuStatus] = useState<GpuStatus | null>(null)
-  const [ollamaModels, setOllamaModels] = useState<string[]>([])
-  const [openaiModels, setOpenaiModels] = useState<string[]>([])
-  const [loadingOllamaModels, setLoadingOllamaModels] = useState(false)
-  const [loadingOpenaiModels, setLoadingOpenaiModels] = useState(false)
-
-  const [piperVoices, setPiperVoices] = useState<string[]>([])
-  const [loadingVoices, setLoadingVoices] = useState(false)
-  const [newVoiceName, setNewVoiceName] = useState('')
-  const [downloading, setDownloading] = useState(false)
-  const [downloadStatus, setDownloadStatus] = useState<string | null>(null)
-
-  const [chatterboxVoices, setChatterboxVoices] = useState<ChatterboxVoice[]>([])
-  const [loadingChatterboxVoices, setLoadingChatterboxVoices] = useState(false)
-
-  const [elevenlabsVoices, setElevenlabsVoices] = useState<ElevenLabsVoice[]>([])
-  const [loadingElevenlabsVoices, setLoadingElevenlabsVoices] = useState(false)
+  const [activeSection, setActiveSection] = useState('section-status')
+  const health = useProviderHealth(props.ollamaUrl || undefined, props.chatterboxUrl || undefined)
 
   useEffect(() => {
     getConfig().then(setConfig).catch(() => {})
-    getGpuStatus(ollamaUrl || undefined, chatterboxUrl || undefined).then(setGpuStatus).catch(() => {})
-  }, [ollamaUrl, chatterboxUrl])
-
-  const loadVoices = () => {
-    setLoadingVoices(true)
-    getPiperVoices()
-      .then(setPiperVoices)
-      .catch(() => setPiperVoices([]))
-      .finally(() => setLoadingVoices(false))
-  }
-
-  const loadChatterboxVoices = useCallback(() => {
-    setLoadingChatterboxVoices(true)
-    getChatterboxVoices(chatterboxUrl || undefined)
-      .then(setChatterboxVoices)
-      .catch(() => setChatterboxVoices([]))
-      .finally(() => setLoadingChatterboxVoices(false))
-  }, [chatterboxUrl])
+    health.refresh()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    loadVoices()
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) { setActiveSection(entry.target.id); break }
+        }
+      },
+      { rootMargin: '-20% 0px -60% 0px' },
+    )
+    for (const id of ['section-status', 'section-tts', 'section-translation', 'section-backend']) {
+      const el = document.getElementById(id)
+      if (el) observer.observe(el)
+    }
+    return () => observer.disconnect()
   }, [])
-
-  useEffect(() => {
-    loadChatterboxVoices()
-  }, [loadChatterboxVoices])
-
-  useEffect(() => {
-    setLoadingOllamaModels(true)
-    getOllamaModels(ollamaUrl || undefined)
-      .then(setOllamaModels)
-      .catch(() => setOllamaModels([]))
-      .finally(() => setLoadingOllamaModels(false))
-  }, [ollamaUrl])
-
-  useEffect(() => {
-    if (ttsProvider !== 'elevenlabs' || !elevenlabsKey) {
-      setElevenlabsVoices([])
-      return
-    }
-    setLoadingElevenlabsVoices(true)
-    getElevenLabsVoices(elevenlabsKey)
-      .then(setElevenlabsVoices)
-      .catch(() => setElevenlabsVoices([]))
-      .finally(() => setLoadingElevenlabsVoices(false))
-  }, [ttsProvider, elevenlabsKey])
-
-  useEffect(() => {
-    if (translateProvider !== 'openai' || !openaiUrl) {
-      setOpenaiModels([])
-      return
-    }
-    setLoadingOpenaiModels(true)
-    getOpenAIModels(openaiUrl, openaiKey)
-      .then(setOpenaiModels)
-      .catch(() => setOpenaiModels([]))
-      .finally(() => setLoadingOpenaiModels(false))
-  }, [translateProvider, openaiUrl, openaiKey])
-
-  const handleDownload = async () => {
-    const name = newVoiceName.trim()
-    if (!name) return
-    setDownloading(true)
-    setDownloadStatus(null)
-    try {
-      const res = await downloadPiperVoice(name)
-      setDownloadStatus(res.message)
-      if (res.success) {
-        setNewVoiceName('')
-        loadVoices()
-      }
-    } catch (err) {
-      setDownloadStatus(err instanceof Error ? err.message : 'Download failed')
-    } finally {
-      setDownloading(false)
-    }
-  }
 
   return (
     <div className="space-y-4">
       <h2 className="font-serif text-xl">Settings</h2>
 
-      <Card>
-        <h3 className="font-mono text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>text-to-speech</h3>
-        <div className="space-y-3">
-          <Select
-            label="TTS Output"
-            value={ttsEnabled ? 'on' : 'off'}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onTtsChange(e.target.value === 'on')}
-          >
-            <option value="on">Enabled</option>
-            <option value="off">Disabled</option>
-          </Select>
+      <SettingsNav activeSection={activeSection} />
 
-          <Select
-            label="Auto-Play"
-            value={autoPlay ? 'on' : 'off'}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onAutoPlayChange(e.target.value === 'on')}
-          >
-            <option value="on">Enabled</option>
-            <option value="off">Disabled</option>
-          </Select>
+      {/* --- MONITOR ZONE --- */}
+      <div id="section-status" className="space-y-4">
+        <ProviderStatusGrid
+          providers={health.providers}
+          deepLKey={props.deepLKey}
+          elevenlabsKey={props.elevenlabsKey}
+        />
+        <GpuMonitor
+          gpuStatus={health.gpuStatus}
+          loading={health.loading}
+          lastUpdated={health.lastUpdated}
+          onRefresh={health.refresh}
+        />
+        <CloudUsage
+          deepLKey={props.deepLKey}
+          deepLFree={props.deepLFree}
+          elevenlabsKey={props.elevenlabsKey}
+        />
+        <BenchmarkWidget />
+      </div>
 
-          {ttsEnabled && (
-            <>
-              <Select
-                label="TTS Provider"
-                value={ttsProvider}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onTtsProviderChange(e.target.value)}
-              >
-                <option value="piper">Piper</option>
-                <option value="chatterbox">Chatterbox</option>
-                <option value="elevenlabs">ElevenLabs</option>
-              </Select>
+      {/* --- CONFIGURE ZONE --- */}
+      <div id="section-tts">
+        <TTSConfig
+          ttsEnabled={props.ttsEnabled}
+          onTtsChange={props.onTtsChange}
+          autoPlay={props.autoPlay}
+          onAutoPlayChange={props.onAutoPlayChange}
+          ttsProvider={props.ttsProvider}
+          onTtsProviderChange={props.onTtsProviderChange}
+          piperVoice={props.piperVoice}
+          onPiperVoiceChange={props.onPiperVoiceChange}
+          chatterboxVoice={props.chatterboxVoice}
+          onChatterboxVoiceChange={props.onChatterboxVoiceChange}
+          chatterboxUrl={props.chatterboxUrl}
+          onChatterboxUrlChange={props.onChatterboxUrlChange}
+          chatterboxExaggeration={props.chatterboxExaggeration}
+          onChatterboxExaggerationChange={props.onChatterboxExaggerationChange}
+          chatterboxCfgWeight={props.chatterboxCfgWeight}
+          onChatterboxCfgWeightChange={props.onChatterboxCfgWeightChange}
+          chatterboxTemperature={props.chatterboxTemperature}
+          onChatterboxTemperatureChange={props.onChatterboxTemperatureChange}
+          elevenlabsKey={props.elevenlabsKey}
+          onElevenlabsKeyChange={props.onElevenlabsKeyChange}
+          elevenlabsModel={props.elevenlabsModel}
+          onElevenlabsModelChange={props.onElevenlabsModelChange}
+          elevenlabsVoiceId={props.elevenlabsVoiceId}
+          onElevenlabsVoiceIdChange={props.onElevenlabsVoiceIdChange}
+          elevenlabsStability={props.elevenlabsStability}
+          onElevenlabsStabilityChange={props.onElevenlabsStabilityChange}
+          elevenlabsSimilarity={props.elevenlabsSimilarity}
+          onElevenlabsSimilarityChange={props.onElevenlabsSimilarityChange}
+        />
+      </div>
 
-              <Divider spacing="sm" />
-
-              {ttsProvider === 'piper' && (
-                <>
-                  <SearchSelect
-                    label={loadingVoices ? 'Voice (loading...)' : 'Voice'}
-                    value={piperVoice}
-                    options={piperVoices}
-                    placeholder="Backend default"
-                    onChange={onPiperVoiceChange}
-                  />
-
-                  <Divider spacing="sm" />
-
-                  <div className="space-y-2">
-                    <Input
-                      label="Download Voice"
-                      placeholder="e.g. en_US-lessac-high"
-                      value={newVoiceName}
-                      onChange={(e) => setNewVoiceName(e.target.value)}
-                    />
-                    <Button
-                      onClick={handleDownload}
-                      disabled={downloading || !newVoiceName.trim()}
-                    >
-                      {downloading ? 'Downloading...' : 'Download'}
-                    </Button>
-                    {downloadStatus && (
-                      <p className="font-mono text-xs" style={{ color: 'var(--text-secondary)' }}>
-                        {downloadStatus}
-                      </p>
-                    )}
-                  </div>
-                </>
-              )}
-
-              {ttsProvider === 'chatterbox' && (
-                <>
-                  <Input
-                    label="Chatterbox URL"
-                    placeholder="http://gpu00.node:4123"
-                    value={chatterboxUrl}
-                    onChange={(e) => onChatterboxUrlChange(e.target.value)}
-                  />
-
-                  <SearchSelect
-                    label={loadingChatterboxVoices ? 'Voice (loading...)' : 'Voice'}
-                    value={chatterboxVoice}
-                    options={chatterboxVoices.map((v) => v.name)}
-                    placeholder="Select voice..."
-                    onChange={onChatterboxVoiceChange}
-                  />
-
-                  <div className="space-y-2 mt-2">
-                    <RangeSlider label="exaggeration" value={chatterboxExaggeration} min={0.25} max={2.0} step={0.05} onChange={onChatterboxExaggerationChange} />
-                    <RangeSlider label="cfg_weight" value={chatterboxCfgWeight} min={0.0} max={1.0} step={0.05} onChange={onChatterboxCfgWeightChange} />
-                    <RangeSlider label="temperature" value={chatterboxTemperature} min={0.05} max={5.0} step={0.05} onChange={onChatterboxTemperatureChange} />
-                  </div>
-
-                  <Divider spacing="sm" />
-
-                  <ChatterboxVoiceManager
-                    selectedVoice={chatterboxVoice}
-                    onVoiceChange={onChatterboxVoiceChange}
-                    onVoicesChanged={loadChatterboxVoices}
-                    chatterboxUrl={chatterboxUrl}
-                  />
-                </>
-              )}
-
-              {ttsProvider === 'elevenlabs' && (
-                <>
-                  <Input
-                    label="API Key"
-                    type="password"
-                    placeholder="xi-..."
-                    value={elevenlabsKey}
-                    onChange={(e) => onElevenlabsKeyChange(e.target.value)}
-                  />
-                  <SearchSelect
-                    label={loadingElevenlabsVoices ? 'Voice (loading...)' : 'Voice'}
-                    value={elevenlabsVoiceId}
-                    options={elevenlabsVoices.map((v) => v.id)}
-                    labels={elevenlabsVoices.reduce<Record<string, string>>((acc, v) => { acc[v.id] = v.name; return acc }, {})}
-                    placeholder="Select voice..."
-                    onChange={onElevenlabsVoiceIdChange}
-                  />
-                  <Select
-                    label="Model"
-                    value={elevenlabsModel}
-                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onElevenlabsModelChange(e.target.value)}
-                  >
-                    <option value="eleven_multilingual_v2">Multilingual v2</option>
-                    <option value="eleven_turbo_v2_5">Turbo v2.5</option>
-                  </Select>
-                  <div className="space-y-2 mt-2">
-                    <RangeSlider label="stability" value={elevenlabsStability} min={0.0} max={1.0} step={0.05} onChange={onElevenlabsStabilityChange} />
-                    <RangeSlider label="similarity" value={elevenlabsSimilarity} min={0.0} max={1.0} step={0.05} onChange={onElevenlabsSimilarityChange} />
-                  </div>
-                </>
-              )}
-            </>
-          )}
-        </div>
-      </Card>
-
-      <Card>
-        <h3 className="font-mono text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>translation provider</h3>
-        <div className="space-y-3">
-          <Select
-            label="Provider"
-            value={translateProvider}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onTranslateProviderChange(e.target.value)}
-          >
-            <option value="local">Ollama</option>
-            <option value="openai">OpenAI Compatible</option>
-            <option value="deepl">DeepL</option>
-          </Select>
-
-          {translateProvider === 'local' && (
-            <>
-              <Input
-                label="Ollama URL"
-                placeholder="http://localhost:11434"
-                value={ollamaUrl}
-                onChange={(e) => onOllamaUrlChange(e.target.value)}
-              />
-              <SearchSelect
-                label={loadingOllamaModels ? 'Model (loading...)' : 'Translation Model'}
-                value={ollamaModel}
-                options={ollamaModels}
-                placeholder="Search models..."
-                onChange={onOllamaModelChange}
-              />
-              <Input
-                label="Keep Alive"
-                placeholder="3m"
-                value={ollamaKeepAlive}
-                onChange={(e) => onOllamaKeepAliveChange(e.target.value)}
-              />
-              <Input
-                label="Context Length"
-                placeholder="Default (model-specific)"
-                value={ollamaContextLength}
-                onChange={(e) => onOllamaContextLengthChange(e.target.value)}
-              />
-            </>
-          )}
-
-          {translateProvider === 'openai' && (
-            <>
-              <Input
-                label="API URL"
-                placeholder="https://openrouter.ai/api/v1"
-                value={openaiUrl}
-                onChange={(e) => onOpenaiUrlChange(e.target.value)}
-              />
-              <Input
-                label="API Key"
-                type="password"
-                placeholder="sk-..."
-                value={openaiKey}
-                onChange={(e) => onOpenaiKeyChange(e.target.value)}
-              />
-              <SearchSelect
-                label={loadingOpenaiModels ? 'Model (loading...)' : 'Model'}
-                value={openaiModel}
-                options={openaiModels}
-                placeholder="Search or type model name..."
-                onChange={onOpenaiModelChange}
-              />
-            </>
-          )}
-
-          {translateProvider === 'deepl' && (
-            <>
-              <Input
-                label="API Key"
-                type="password"
-                placeholder="DeepL API Key"
-                value={deepLKey}
-                onChange={(e) => onDeepLKeyChange(e.target.value)}
-              />
-              <Select
-                label="Tier"
-                value={deepLFree ? 'free' : 'pro'}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onDeepLFreeChange(e.target.value === 'free')}
-              >
-                <option value="free">Free</option>
-                <option value="pro">Pro</option>
-              </Select>
-            </>
-          )}
-        </div>
-      </Card>
+      <div id="section-translation">
+        <TranslateConfig
+          translateProvider={props.translateProvider}
+          onTranslateProviderChange={props.onTranslateProviderChange}
+          ollamaUrl={props.ollamaUrl}
+          onOllamaUrlChange={props.onOllamaUrlChange}
+          ollamaModel={props.ollamaModel}
+          onOllamaModelChange={props.onOllamaModelChange}
+          ollamaKeepAlive={props.ollamaKeepAlive}
+          onOllamaKeepAliveChange={props.onOllamaKeepAliveChange}
+          ollamaContextLength={props.ollamaContextLength}
+          onOllamaContextLengthChange={props.onOllamaContextLengthChange}
+          openaiUrl={props.openaiUrl}
+          onOpenaiUrlChange={props.onOpenaiUrlChange}
+          openaiKey={props.openaiKey}
+          onOpenaiKeyChange={props.onOpenaiKeyChange}
+          openaiModel={props.openaiModel}
+          onOpenaiModelChange={props.onOpenaiModelChange}
+          deepLKey={props.deepLKey}
+          onDeepLKeyChange={props.onDeepLKeyChange}
+          deepLFree={props.deepLFree}
+          onDeepLFreeChange={props.onDeepLFreeChange}
+        />
+      </div>
 
       {config && (
-        <Card>
-          <h3 className="font-mono text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>backend info</h3>
-          <dl className="font-mono text-xs space-y-1">
-            <div className="flex justify-between">
-              <dt>device</dt>
-              <dd>{config.device}</dd>
-            </div>
-            <Divider spacing="sm" />
-            <div className="flex justify-between">
-              <dt>stt</dt>
-              <dd>{config.stt_provider} ({config.whisper_model})</dd>
-            </div>
-            {ttsEnabled && (
-              <>
-                <Divider spacing="sm" />
-                <div className="flex justify-between">
-                  <dt>tts</dt>
-                  <dd>
-                    {ttsProvider === 'chatterbox'
-                      ? `chatterbox (${chatterboxVoice || config.chatterbox_voice})`
-                      : ttsProvider === 'elevenlabs'
-                        ? `elevenlabs (${elevenlabsModel})`
-                        : `piper (${piperVoice || config.piper_voice})`}
-                  </dd>
-                </div>
-              </>
-            )}
-            <Divider spacing="sm" />
-            <div className="flex justify-between">
-              <dt>translate</dt>
-              <dd>
-                {translateProvider === 'openai'
-                  ? `openai (${openaiModel || 'default'})`
-                  : translateProvider === 'deepl'
-                    ? 'deepl'
-                    : `ollama (${ollamaModel || config.ollama_model})`}
-              </dd>
-            </div>
-            {gpuStatus && (ttsProvider === 'chatterbox' || translateProvider === 'local') && (
-              <>
-                <Divider spacing="sm" />
-                <div className="flex justify-between">
-                  <dt>gpu</dt>
-                  <dd className="text-right">
-                    {translateProvider === 'local' && (gpuStatus.ollama.error ? 'ollama: offline' : 'ollama: online')}
-                    {translateProvider === 'local' && ttsProvider === 'chatterbox' && ' / '}
-                    {ttsProvider === 'chatterbox' && (gpuStatus.chatterbox.error ? 'chatterbox: offline' : 'chatterbox: online')}
-                  </dd>
-                </div>
-              </>
-            )}
-            <Divider spacing="sm" />
-            <div className="flex justify-between">
-              <dt>api docs</dt>
-              <dd>
-                <a
-                  href="/docs"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ textDecoration: 'underline', textUnderlineOffset: '2px' }}
-                >
-                  Swagger UI →
-                </a>
-              </dd>
-            </div>
-          </dl>
-        </Card>
+        <div id="section-backend">
+          <Card>
+            <h3 className="font-mono text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>backend info</h3>
+            <dl className="font-mono text-xs space-y-1">
+              <div className="flex justify-between">
+                <dt>device</dt>
+                <dd>{config.device}</dd>
+              </div>
+              <Divider spacing="sm" />
+              <div className="flex justify-between">
+                <dt>stt</dt>
+                <dd>{config.stt_provider} ({config.whisper_model})</dd>
+              </div>
+              {props.ttsEnabled && (
+                <>
+                  <Divider spacing="sm" />
+                  <div className="flex justify-between">
+                    <dt>tts</dt>
+                    <dd>
+                      {props.ttsProvider === 'chatterbox'
+                        ? `chatterbox (${props.chatterboxVoice || config.chatterbox_voice})`
+                        : props.ttsProvider === 'elevenlabs'
+                          ? `elevenlabs (${props.elevenlabsModel})`
+                          : `piper (${props.piperVoice || config.piper_voice})`}
+                    </dd>
+                  </div>
+                </>
+              )}
+              <Divider spacing="sm" />
+              <div className="flex justify-between">
+                <dt>translate</dt>
+                <dd>
+                  {props.translateProvider === 'openai'
+                    ? `openai (${props.openaiModel || 'default'})`
+                    : props.translateProvider === 'deepl'
+                      ? 'deepl'
+                      : `ollama (${props.ollamaModel || config.ollama_model})`}
+                </dd>
+              </div>
+              <Divider spacing="sm" />
+              <div className="flex justify-between">
+                <dt>api docs</dt>
+                <dd>
+                  <a
+                    href="/docs"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ textDecoration: 'underline', textUnderlineOffset: '2px' }}
+                  >
+                    Swagger UI →
+                  </a>
+                </dd>
+              </div>
+            </dl>
+          </Card>
+        </div>
       )}
     </div>
   )

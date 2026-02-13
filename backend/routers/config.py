@@ -1,6 +1,9 @@
+import json
 import logging
 import re
+import time
 from contextlib import asynccontextmanager
+from datetime import date, timedelta
 from pathlib import Path
 from collections.abc import AsyncIterator
 
@@ -9,16 +12,21 @@ from fastapi import APIRouter, Form, Query, UploadFile
 
 from backend.dependencies import get_settings, get_tts
 from backend.models import (
+    BenchmarkEntry,
+    BenchmarkResponse,
     ChatterboxUploadResponse,
     ChatterboxVoice,
     ChatterboxVoicesResponse,
     ConfigResponse,
     GpuStatusResponse,
+    HealthProviderInfo,
+    HealthResponse,
     LanguagesResponse,
     ModelsResponse,
     PiperDownloadRequest,
     PiperDownloadResponse,
     PiperVoicesResponse,
+    UsageResponse,
 )
 from backend.providers.tts.chatterbox_remote import ChatterboxRemoteProvider
 
@@ -344,3 +352,106 @@ async def get_chatterbox_languages(
     except Exception:
         logger.warning("Could not fetch Chatterbox languages")
         return LanguagesResponse(languages=[])
+
+
+BENCHMARKS_DIR = Path(__file__).resolve().parent.parent.parent / "benchmarks"
+
+
+@router.get("/health", response_model=HealthResponse)
+async def get_provider_health(
+    ollama_url: str | None = Query(None),
+    chatterbox_url: str | None = Query(None),
+) -> HealthResponse:
+    s = get_settings()
+    providers: dict[str, HealthProviderInfo] = {}
+
+    # Whisper (local, always ok if app is running)
+    providers["whisper"] = HealthProviderInfo(status="ok")
+
+    # Piper (local singleton)
+    tts = get_tts()
+    from backend.providers.tts.piper_local import PiperLocalProvider
+    if isinstance(tts, PiperLocalProvider):
+        providers["piper"] = HealthProviderInfo(status="ok")
+
+    # Ollama
+    effective_ollama = (ollama_url or s.ollama_url).rstrip("/")
+    try:
+        t0 = time.perf_counter()
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.get(f"{effective_ollama}/api/tags")
+            resp.raise_for_status()
+        latency = int((time.perf_counter() - t0) * 1000)
+        providers["ollama"] = HealthProviderInfo(status="ok", latency_ms=latency)
+    except Exception:
+        providers["ollama"] = HealthProviderInfo(status="unreachable")
+
+    # Chatterbox
+    effective_chatterbox = chatterbox_url or s.chatterbox_url
+    try:
+        t0 = time.perf_counter()
+        async with _chatterbox_provider(effective_chatterbox) as provider:
+            await provider.get_memory()
+        latency = int((time.perf_counter() - t0) * 1000)
+        providers["chatterbox"] = HealthProviderInfo(status="ok", latency_ms=latency)
+    except Exception:
+        providers["chatterbox"] = HealthProviderInfo(status="unreachable")
+
+    return HealthResponse(providers=providers)
+
+
+@router.get("/benchmarks/recent", response_model=BenchmarkResponse)
+async def get_recent_benchmarks(
+    limit: int = Query(10, ge=1, le=100),
+) -> BenchmarkResponse:
+    entries: list[BenchmarkEntry] = []
+    today = date.today()
+    for offset in range(2):  # today + yesterday
+        path = BENCHMARKS_DIR / f"{today - timedelta(days=offset)}.jsonl"
+        if not path.exists():
+            continue
+        for line in path.read_text().strip().splitlines():
+            try:
+                entries.append(BenchmarkEntry(**json.loads(line)))
+            except Exception:
+                continue
+    # Sort newest first and limit
+    entries.sort(key=lambda e: e.timestamp, reverse=True)
+    entries = entries[:limit]
+    return BenchmarkResponse(entries=entries, count=len(entries))
+
+
+@router.get("/deepl/usage", response_model=UsageResponse)
+async def get_deepl_usage(
+    key: str = Query(...),
+    free: bool = Query(True),
+) -> UsageResponse:
+    base = "https://api-free.deepl.com" if free else "https://api.deepl.com"
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        resp = await client.get(
+            f"{base}/v2/usage",
+            headers={"Authorization": f"DeepL-Auth-Key {key}"},
+        )
+        resp.raise_for_status()
+        data = resp.json()
+    return UsageResponse(
+        character_count=data.get("character_count", 0),
+        character_limit=data.get("character_limit", 0),
+    )
+
+
+@router.get("/elevenlabs/usage", response_model=UsageResponse)
+async def get_elevenlabs_usage(
+    key: str = Query(...),
+) -> UsageResponse:
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        resp = await client.get(
+            "https://api.elevenlabs.io/v1/user/subscription",
+            headers={"xi-api-key": key},
+        )
+        resp.raise_for_status()
+        data = resp.json()
+    return UsageResponse(
+        character_count=data.get("character_count", 0),
+        character_limit=data.get("character_limit", 0),
+    )

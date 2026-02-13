@@ -231,9 +231,55 @@ export async function getElevenLabsVoices(key: string): Promise<ElevenLabsVoice[
   return data.voices
 }
 
+interface OllamaModel {
+  name: string
+  size: number
+  size_vram: number
+  expires_at: string
+}
+
+interface OllamaPsResponse {
+  models?: OllamaModel[]
+  error?: string
+}
+
+interface ChatterboxMemory {
+  gpu_allocated_mb?: number
+  gpu_reserved_mb?: number
+  error?: string
+}
+
 export interface GpuStatus {
-  ollama: Record<string, unknown>
-  chatterbox: Record<string, unknown>
+  ollama: OllamaPsResponse
+  chatterbox: ChatterboxMemory
+}
+
+export interface HealthProviderInfo {
+  status: string
+  latency_ms: number | null
+}
+
+export interface HealthResponse {
+  providers: Record<string, HealthProviderInfo>
+}
+
+export interface BenchmarkEntry {
+  timestamp: string
+  stt_provider: string
+  translate_provider: string
+  tts_provider: string
+  source_lang: string
+  target_lang: string
+  text_length: number
+  stt_ms: number
+  translate_ms: number
+  tts_ms: number | null
+  total_ms: number
+}
+
+export interface UsageResponse {
+  character_count: number
+  character_limit: number
 }
 
 export async function getGpuStatus(ollamaUrl?: string, chatterboxUrl?: string): Promise<GpuStatus> {
@@ -249,4 +295,27 @@ export async function warmupGpu(service: string = 'ollama', ollamaUrl?: string, 
   if (ollamaUrl) params.set('ollama_url', ollamaUrl)
   if (keepAlive) params.set('keep_alive', keepAlive)
   await request(`/gpu/warmup?${params}`, { method: 'POST' })
+}
+
+export async function getProviderHealth(ollamaUrl?: string, chatterboxUrl?: string): Promise<HealthResponse> {
+  const params = new URLSearchParams()
+  if (ollamaUrl) params.set('ollama_url', ollamaUrl)
+  if (chatterboxUrl) params.set('chatterbox_url', chatterboxUrl)
+  const qs = params.toString()
+  return request(`/health${qs ? `?${qs}` : ''}`)
+}
+
+export async function getRecentBenchmarks(limit: number = 10): Promise<BenchmarkEntry[]> {
+  const data = await request<{ entries: BenchmarkEntry[] }>(`/benchmarks/recent?limit=${limit}`)
+  return data.entries
+}
+
+export async function getDeepLUsage(key: string, free: boolean): Promise<UsageResponse> {
+  const params = new URLSearchParams({ key, free: String(free) })
+  return request(`/deepl/usage?${params}`)
+}
+
+export async function getElevenLabsUsage(key: string): Promise<UsageResponse> {
+  const params = new URLSearchParams({ key })
+  return request(`/elevenlabs/usage?${params}`)
 }

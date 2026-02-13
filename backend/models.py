@@ -118,3 +118,36 @@ class LanguagesResponse(BaseModel):
 class GpuStatusResponse(BaseModel):
     ollama: dict
     chatterbox: dict
+
+
+class HealthProviderInfo(BaseModel):
+    status: str  # "ok" | "unreachable"
+    latency_ms: int | None = None
+
+
+class HealthResponse(BaseModel):
+    providers: dict[str, HealthProviderInfo]
+
+
+class BenchmarkEntry(BaseModel):
+    timestamp: str
+    stt_provider: str
+    translate_provider: str
+    tts_provider: str
+    source_lang: str
+    target_lang: str
+    text_length: int
+    stt_ms: int
+    translate_ms: int
+    tts_ms: int | None = None
+    total_ms: int
+
+
+class BenchmarkResponse(BaseModel):
+    entries: list[BenchmarkEntry]
+    count: int
+
+
+class UsageResponse(BaseModel):
+    character_count: int
+    character_limit: int
