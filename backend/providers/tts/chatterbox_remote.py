@@ -78,8 +78,11 @@ class ChatterboxRemoteProvider(TTSProvider):
         """Fetch supported languages from the Chatterbox API."""
         resp = await self._client.get(f"{self._base_url}/languages", timeout=30.0)
         resp.raise_for_status()
-        languages: list[str] = resp.json()
-        return languages
+        raw = resp.json()
+        # API returns {"languages": [{"code": "en", "name": "English"}, ...]}
+        if isinstance(raw, dict) and "languages" in raw:
+            return [lang["code"] for lang in raw["languages"] if "code" in lang]
+        return raw
 
     async def get_memory(self) -> dict:
         """Fetch GPU memory info from the Chatterbox API."""

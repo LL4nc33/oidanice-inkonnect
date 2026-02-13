@@ -21,6 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY backend/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
+COPY VERSION ./
 COPY backend/ ./backend/
 COPY --from=frontend-build /app/frontend/dist ./static/
 
