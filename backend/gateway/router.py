@@ -63,7 +63,7 @@ async def transcribe(
     return TranscriptionResponse(text=text)
 
 
-@gateway_router.post("/audio/speech")
+@gateway_router.post("/audio/speech", response_model=None)
 async def speech(
     req: SpeechRequest,
     response: Response,
@@ -148,7 +148,7 @@ async def translate(
 # Pipeline
 # ---------------------------------------------------------------------------
 
-@gateway_router.post("/pipeline")
+@gateway_router.post("/pipeline", response_model=None)
 async def pipeline(
     response: Response,
     file: UploadFile = File(...),
