@@ -3,7 +3,7 @@ FROM node:20-slim AS frontend-build
 WORKDIR /app
 COPY kindle-ui/ ./kindle-ui/
 WORKDIR /app/kindle-ui
-RUN npm install
+RUN npm install && npm run build
 WORKDIR /app/frontend
 COPY frontend/package.json frontend/package-lock.json* ./
 RUN npm install
