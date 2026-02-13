@@ -10,11 +10,29 @@ All settings are configured via environment variables. Copy `.env.example` to `.
 | `STT_PROVIDER` | `local` | Speech-to-text provider |
 | `WHISPER_MODEL` | `small` | Whisper model size: `tiny`, `base`, `small`, `medium`, `large-v3` |
 | `WHISPER_COMPUTE_TYPE` | `int8` | Quantization: `int8`, `float16`, `float32` |
-| `TTS_PROVIDER` | `local` | Text-to-speech provider |
+| `TTS_PROVIDER` | `local` | Text-to-speech provider: `local` (Piper) |
 | `PIPER_VOICE` | `de_DE-thorsten-high` | Piper voice identifier |
+| `CHATTERBOX_URL` | `http://gpu00.node:4123` | Chatterbox TTS API URL |
+| `CHATTERBOX_VOICE` | `default` | Default Chatterbox voice name |
 | `TRANSLATE_PROVIDER` | `local` | Translation provider |
 | `OLLAMA_MODEL` | `ministral:3b` | Ollama model for translation |
 | `OLLAMA_URL` | `http://localhost:11434` | Ollama API URL |
+
+## Frontend Settings
+
+These settings are configured in the UI and stored in the browser's localStorage. They override backend defaults at runtime:
+
+| Setting | Description |
+|---------|-------------|
+| TTS Provider | Switch between Piper (local) and Chatterbox (remote) |
+| Chatterbox URL | Override backend Chatterbox API URL |
+| Chatterbox Voice | Select from uploaded voice samples |
+| Synthesis Parameters | Exaggeration (0.25-2.0), cfg_weight (0.0-1.0), temperature (0.05-5.0) |
+| Ollama URL | Override backend Ollama URL |
+| Ollama Model | Select from available models |
+| Translation Provider | Switch between Ollama (local) and OpenAI-compatible (remote) |
+| OpenAI URL / Key / Model | For OpenAI-compatible translation (e.g. OpenRouter) |
+| Auto-Play | Automatically play translation audio after pipeline completes |
 
 ## Optional Cloud Keys
 
@@ -33,3 +51,12 @@ All settings are configured via environment variables. Copy `.env.example` to `.
 | `small` | ~2 GB | Balanced |
 | `medium` | ~5 GB | Accurate |
 | `large-v3` | ~10 GB | Most accurate |
+
+## GPU VRAM Management
+
+When Ollama and Chatterbox share a GPU:
+
+- Ollama models are preloaded when recording starts (fire-and-forget warmup)
+- `keep_alive: "30s"` ensures Ollama unloads quickly after translation
+- Chatterbox stays loaded permanently
+- When using OpenAI-compatible translation, no Ollama VRAM is used
