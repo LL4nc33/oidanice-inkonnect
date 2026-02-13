@@ -81,3 +81,28 @@ class VoicesResponse(BaseModel):
 
 class LanguagesGatewayResponse(BaseModel):
     languages: list[str]
+
+
+# --- Sessions ---
+
+class SessionCreateGateway(BaseModel):
+    source_lang: str
+    target_lang: str
+    audio_enabled: bool = False
+    title: str | None = None
+    org_id: str | None = None
+
+
+class SessionUpdateGateway(BaseModel):
+    title: str | None = None
+    audio_enabled: bool | None = None
+
+
+# --- Search ---
+
+class SearchGatewayRequest(BaseModel):
+    query: str
+    org_id: str | None = None
+    limit: int = 20
+    source_lang: str | None = None
+    target_lang: str | None = None

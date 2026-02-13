@@ -19,6 +19,9 @@ from backend.gateway.models import (
     ModelObject,
     ModelsListResponse,
     PipelineGatewayResponse,
+    SearchGatewayRequest,
+    SessionCreateGateway,
+    SessionUpdateGateway,
     SpeechRequest,
     TranscriptionResponse,
     TranslateGatewayRequest,
@@ -338,3 +341,129 @@ async def upload_voice(
         return {"success": True, "name": name, "message": str(result.get("message", "Voice uploaded"))}
     finally:
         await provider.cleanup()
+
+
+# ---------------------------------------------------------------------------
+# Sessions (Chat History)
+# ---------------------------------------------------------------------------
+
+@gateway_router.post("/sessions")
+async def create_session(
+    req: SessionCreateGateway,
+    response: Response,
+    client: ClientInfo = Depends(require_auth),
+) -> dict:
+    rl_headers = check_rate_limit(client)
+    _apply_headers(response, rl_headers)
+
+    from backend.routers.sessions import create_session as _create
+    from backend.models import SessionCreate
+    body = SessionCreate(
+        source_lang=req.source_lang,
+        target_lang=req.target_lang,
+        audio_enabled=req.audio_enabled,
+        title=req.title,
+        org_id=req.org_id,
+    )
+    result = await _create(body)
+    return result.model_dump()
+
+
+@gateway_router.get("/sessions")
+async def list_sessions(
+    response: Response,
+    limit: int = 20,
+    offset: int = 0,
+    client: ClientInfo = Depends(require_auth),
+) -> dict:
+    rl_headers = check_rate_limit(client)
+    _apply_headers(response, rl_headers)
+
+    from backend.routers.sessions import list_sessions as _list
+    result = await _list(limit=limit, offset=offset)
+    return result.model_dump()
+
+
+@gateway_router.get("/sessions/{session_id}")
+async def get_session(
+    session_id: str,
+    response: Response,
+    client: ClientInfo = Depends(require_auth),
+) -> dict:
+    rl_headers = check_rate_limit(client)
+    _apply_headers(response, rl_headers)
+
+    from backend.routers.sessions import get_session as _get
+    result = await _get(session_id)
+    return result.model_dump()
+
+
+@gateway_router.patch("/sessions/{session_id}")
+async def update_session(
+    session_id: str,
+    req: SessionUpdateGateway,
+    response: Response,
+    client: ClientInfo = Depends(require_auth),
+) -> dict:
+    rl_headers = check_rate_limit(client)
+    _apply_headers(response, rl_headers)
+
+    from backend.routers.sessions import update_session as _update
+    from backend.models import SessionUpdate
+    body = SessionUpdate(title=req.title, audio_enabled=req.audio_enabled)
+    result = await _update(session_id, body)
+    return result.model_dump()
+
+
+@gateway_router.delete("/sessions/{session_id}")
+async def delete_session(
+    session_id: str,
+    response: Response,
+    client: ClientInfo = Depends(require_auth),
+) -> dict:
+    rl_headers = check_rate_limit(client)
+    _apply_headers(response, rl_headers)
+
+    from backend.routers.sessions import delete_session as _delete
+    return await _delete(session_id)
+
+
+@gateway_router.get("/sessions/{session_id}/messages")
+async def list_messages(
+    session_id: str,
+    response: Response,
+    limit: int = 50,
+    offset: int = 0,
+    client: ClientInfo = Depends(require_auth),
+) -> dict:
+    rl_headers = check_rate_limit(client)
+    _apply_headers(response, rl_headers)
+
+    from backend.routers.messages import get_messages as _get_msgs
+    result = await _get_msgs(session_id, limit=limit, offset=offset)
+    return result.model_dump()
+
+
+# ---------------------------------------------------------------------------
+# Semantic Search
+# ---------------------------------------------------------------------------
+
+@gateway_router.post("/search")
+async def search(
+    req: SearchGatewayRequest,
+    response: Response,
+    client: ClientInfo = Depends(require_auth),
+) -> dict:
+    rl_headers = check_rate_limit(client)
+    _apply_headers(response, rl_headers)
+
+    from backend.routers.search import semantic_search, SearchRequest
+    body = SearchRequest(
+        query=req.query,
+        org_id=req.org_id,
+        limit=req.limit,
+        source_lang=req.source_lang,
+        target_lang=req.target_lang,
+    )
+    result = await semantic_search(body)
+    return result.model_dump()
