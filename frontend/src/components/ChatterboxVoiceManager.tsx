@@ -7,10 +7,11 @@ interface ChatterboxVoiceManagerProps {
   selectedVoice: string
   onVoiceChange: (voice: string) => void
   onVoicesChanged: () => void
+  chatterboxUrl: string
 }
 
 export function ChatterboxVoiceManager({
-  selectedVoice, onVoiceChange, onVoicesChanged,
+  selectedVoice, onVoiceChange, onVoicesChanged, chatterboxUrl,
 }: ChatterboxVoiceManagerProps) {
   const [languages, setLanguages] = useState<string[]>([])
   const [uploadStatus, setUploadStatus] = useState<string | null>(null)
@@ -30,17 +31,17 @@ export function ChatterboxVoiceManager({
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    getChatterboxLanguages()
+    getChatterboxLanguages(chatterboxUrl || undefined)
       .then(setLanguages)
       .catch(() => setLanguages([]))
-  }, [])
+  }, [chatterboxUrl])
 
   const handleDelete = async () => {
     if (!selectedVoice) return
     setDeleting(true)
     setUploadStatus(null)
     try {
-      const res = await deleteChatterboxVoice(selectedVoice)
+      const res = await deleteChatterboxVoice(selectedVoice, chatterboxUrl || undefined)
       setUploadStatus(res.message)
       if (res.success) { onVoiceChange(''); onVoicesChanged() }
     } catch (err) {
@@ -55,7 +56,7 @@ export function ChatterboxVoiceManager({
     setRecordUploading(true)
     setUploadStatus(null)
     try {
-      const res = await uploadChatterboxVoice(recordedBlob, recordName.trim(), recordLang || undefined)
+      const res = await uploadChatterboxVoice(recordedBlob, recordName.trim(), recordLang || undefined, chatterboxUrl || undefined)
       setUploadStatus(res.message)
       if (res.success) { setRecordedBlob(null); setRecordName(''); setRecordLang(''); onVoicesChanged() }
     } catch (err) {
@@ -70,7 +71,7 @@ export function ChatterboxVoiceManager({
     setFileUploading(true)
     setUploadStatus(null)
     try {
-      const res = await uploadChatterboxVoice(uploadFile, uploadName.trim(), uploadLang || undefined)
+      const res = await uploadChatterboxVoice(uploadFile, uploadName.trim(), uploadLang || undefined, chatterboxUrl || undefined)
       setUploadStatus(res.message)
       if (res.success) {
         setUploadName(''); setUploadFile(null); setUploadLang('')

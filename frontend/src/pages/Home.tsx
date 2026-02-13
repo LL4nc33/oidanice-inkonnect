@@ -14,6 +14,7 @@ interface HomeProps {
   ttsProvider: string
   piperVoice: string
   chatterboxVoice: string
+  chatterboxUrl: string
   ollamaModel: string
   translateProvider: string
   openaiUrl: string
@@ -34,7 +35,7 @@ interface Result {
   durationMs: number
 }
 
-export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoice, chatterboxVoice, ollamaModel, translateProvider, openaiUrl, openaiKey, openaiModel, chatterboxExaggeration, chatterboxCfgWeight, chatterboxTemperature, onSourceChange, onTargetChange }: HomeProps) {
+export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoice, chatterboxVoice, chatterboxUrl, ollamaModel, translateProvider, openaiUrl, openaiKey, openaiModel, chatterboxExaggeration, chatterboxCfgWeight, chatterboxTemperature, onSourceChange, onTargetChange }: HomeProps) {
   const recorder = useAudioRecorder()
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<Result | null>(null)
@@ -69,6 +70,7 @@ export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoi
           providerOpts,
           activeTtsProvider,
           synthesisParams,
+          ttsProvider === 'chatterbox' ? chatterboxUrl || undefined : undefined,
         )
         setResult({
           originalText: res.original_text,
@@ -84,7 +86,7 @@ export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoi
       }
     }
     process()
-  }, [recorder.blob, sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoice, chatterboxVoice, ollamaModel, translateProvider, openaiUrl, openaiKey, openaiModel, chatterboxExaggeration, chatterboxCfgWeight, chatterboxTemperature])
+  }, [recorder.blob, sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoice, chatterboxVoice, chatterboxUrl, ollamaModel, translateProvider, openaiUrl, openaiKey, openaiModel, chatterboxExaggeration, chatterboxCfgWeight, chatterboxTemperature])
 
   return (
     <div className="space-y-4">

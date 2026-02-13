@@ -16,6 +16,7 @@ class TTSRequest(BaseModel):
     lang: str = "de"
     voice: str | None = None
     tts_provider: str | None = None
+    chatterbox_url: str | None = None
     exaggeration: float | None = None
     cfg_weight: float | None = None
     temperature: float | None = None

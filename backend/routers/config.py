@@ -104,12 +104,15 @@ async def download_piper_voice(body: PiperDownloadRequest) -> PiperDownloadRespo
 
 
 @router.get("/chatterbox/voices", response_model=ChatterboxVoicesResponse)
-async def get_chatterbox_voices() -> ChatterboxVoicesResponse:
+async def get_chatterbox_voices(
+    url: str | None = Query(None),
+) -> ChatterboxVoicesResponse:
     s = get_settings()
+    chatterbox_url = url or s.chatterbox_url
     from backend.providers.tts.chatterbox_remote import ChatterboxRemoteProvider
 
     provider = ChatterboxRemoteProvider(
-        base_url=s.chatterbox_url,
+        base_url=chatterbox_url,
         voice=s.chatterbox_voice,
     )
     try:
@@ -117,7 +120,7 @@ async def get_chatterbox_voices() -> ChatterboxVoicesResponse:
         voices = [ChatterboxVoice(**v) for v in raw_voices]
         return ChatterboxVoicesResponse(voices=voices)
     except Exception:
-        logger.warning("Could not fetch Chatterbox voices from %s", s.chatterbox_url)
+        logger.warning("Could not fetch Chatterbox voices from %s", chatterbox_url)
         return ChatterboxVoicesResponse(voices=[])
     finally:
         await provider.cleanup()
@@ -128,8 +131,10 @@ async def upload_chatterbox_voice(
     file: UploadFile,
     name: str = Form(...),
     language: str | None = Form(None),
+    url: str | None = Query(None),
 ) -> ChatterboxUploadResponse:
     s = get_settings()
+    chatterbox_url = url or s.chatterbox_url
     from backend.providers.tts.chatterbox_remote import ChatterboxRemoteProvider
 
     if not re.match(r'^[\w\-]+$', name):
@@ -145,7 +150,7 @@ async def upload_chatterbox_voice(
         )
 
     provider = ChatterboxRemoteProvider(
-        base_url=s.chatterbox_url,
+        base_url=chatterbox_url,
         voice=s.chatterbox_voice,
     )
     try:
@@ -172,14 +177,18 @@ async def upload_chatterbox_voice(
 
 
 @router.delete("/chatterbox/voices/{name}", response_model=ChatterboxUploadResponse)
-async def delete_chatterbox_voice(name: str) -> ChatterboxUploadResponse:
+async def delete_chatterbox_voice(
+    name: str,
+    url: str | None = Query(None),
+) -> ChatterboxUploadResponse:
     if not re.match(r'^[\w\-]+$', name):
         return ChatterboxUploadResponse(success=False, name=name, message="Invalid voice name")
     s = get_settings()
+    chatterbox_url = url or s.chatterbox_url
     from backend.providers.tts.chatterbox_remote import ChatterboxRemoteProvider
 
     provider = ChatterboxRemoteProvider(
-        base_url=s.chatterbox_url,
+        base_url=chatterbox_url,
         voice=s.chatterbox_voice,
     )
     try:
@@ -311,12 +320,15 @@ async def get_gpu_status() -> GpuStatusResponse:
 
 
 @router.get("/chatterbox/languages", response_model=LanguagesResponse)
-async def get_chatterbox_languages() -> LanguagesResponse:
+async def get_chatterbox_languages(
+    url: str | None = Query(None),
+) -> LanguagesResponse:
     s = get_settings()
+    chatterbox_url = url or s.chatterbox_url
     from backend.providers.tts.chatterbox_remote import ChatterboxRemoteProvider
 
     provider = ChatterboxRemoteProvider(
-        base_url=s.chatterbox_url, voice=s.chatterbox_voice,
+        base_url=chatterbox_url, voice=s.chatterbox_voice,
     )
     try:
         languages = await provider.get_languages()

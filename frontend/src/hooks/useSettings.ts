@@ -7,6 +7,7 @@ interface AppSettings {
   ttsProvider: string
   piperVoice: string
   chatterboxVoice: string
+  chatterboxUrl: string
   ollamaModel: string
   ollamaUrl: string
   translateProvider: string
@@ -27,6 +28,7 @@ const DEFAULTS: AppSettings = {
   ttsProvider: 'piper',
   piperVoice: '',
   chatterboxVoice: '',
+  chatterboxUrl: '',
   ollamaModel: '',
   ollamaUrl: '',
   translateProvider: 'local',

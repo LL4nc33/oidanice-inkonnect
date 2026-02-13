@@ -13,6 +13,7 @@ router = APIRouter(prefix="/api", tags=["tts"])
 def _resolve_tts(
     tts_provider: str | None,
     voice: str | None,
+    chatterbox_url: str | None = None,
 ) -> tuple[TTSProvider, bool]:
     """Return (provider_instance, is_ad_hoc). Ad-hoc providers must be cleaned up."""
     if tts_provider == "chatterbox":
@@ -20,7 +21,7 @@ def _resolve_tts(
 
         s = get_settings()
         return ChatterboxRemoteProvider(
-            base_url=s.chatterbox_url,
+            base_url=chatterbox_url or s.chatterbox_url,
             voice=voice or s.chatterbox_voice,
         ), True
     return get_tts(), False
@@ -29,7 +30,7 @@ def _resolve_tts(
 @router.post("/tts", response_model=TTSResponse)
 async def text_to_speech(req: TTSRequest) -> TTSResponse:
     start = time.perf_counter()
-    tts_impl, ad_hoc = _resolve_tts(req.tts_provider, req.voice)
+    tts_impl, ad_hoc = _resolve_tts(req.tts_provider, req.voice, req.chatterbox_url)
     try:
         audio_bytes = await tts_impl.synthesize(
             req.text,

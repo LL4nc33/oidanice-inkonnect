@@ -64,6 +64,7 @@ export async function synthesize(
   voice?: string,
   ttsProvider?: string,
   params?: SynthesisParams,
+  chatterboxUrl?: string,
 ): Promise<TTSResponse> {
   return request('/tts', {
     method: 'POST',
@@ -73,6 +74,7 @@ export async function synthesize(
       lang,
       voice,
       tts_provider: ttsProvider,
+      chatterbox_url: chatterboxUrl || undefined,
       exaggeration: params?.exaggeration,
       cfg_weight: params?.cfgWeight,
       temperature: params?.temperature,
@@ -104,6 +106,7 @@ export async function pipeline(
   providerOpts?: ProviderOptions,
   ttsProvider?: string,
   synthesisParams?: SynthesisParams,
+  chatterboxUrl?: string,
 ): Promise<PipelineResponse> {
   const form = new FormData()
   form.append('file', audio, 'recording.webm')
@@ -120,6 +123,7 @@ export async function pipeline(
   if (synthesisParams?.exaggeration != null) params.set('exaggeration', String(synthesisParams.exaggeration))
   if (synthesisParams?.cfgWeight != null) params.set('cfg_weight', String(synthesisParams.cfgWeight))
   if (synthesisParams?.temperature != null) params.set('temperature', String(synthesisParams.temperature))
+  if (chatterboxUrl) params.set('chatterbox_url', chatterboxUrl)
   return request(`/pipeline?${params}`, { method: 'POST', body: form })
 }
 
@@ -158,8 +162,9 @@ export interface ChatterboxVoice {
   language: string | null
 }
 
-export async function getChatterboxVoices(): Promise<ChatterboxVoice[]> {
-  const data = await request<{ voices: ChatterboxVoice[] }>('/chatterbox/voices')
+export async function getChatterboxVoices(url?: string): Promise<ChatterboxVoice[]> {
+  const params = url ? `?url=${encodeURIComponent(url)}` : ''
+  const data = await request<{ voices: ChatterboxVoice[] }>(`/chatterbox/voices${params}`)
   return data.voices
 }
 
@@ -167,20 +172,24 @@ export async function uploadChatterboxVoice(
   file: File | Blob,
   name: string,
   language?: string,
+  url?: string,
 ): Promise<{ success: boolean; name: string; message: string }> {
   const form = new FormData()
   form.append('file', file instanceof File ? file : new File([file], `${name}.webm`, { type: file.type }))
   form.append('name', name)
   if (language) form.append('language', language)
-  return request('/chatterbox/voices', { method: 'POST', body: form })
+  const params = url ? `?url=${encodeURIComponent(url)}` : ''
+  return request(`/chatterbox/voices${params}`, { method: 'POST', body: form })
 }
 
-export async function deleteChatterboxVoice(name: string): Promise<{ success: boolean; name: string; message: string }> {
-  return request(`/chatterbox/voices/${encodeURIComponent(name)}`, { method: 'DELETE' })
+export async function deleteChatterboxVoice(name: string, url?: string): Promise<{ success: boolean; name: string; message: string }> {
+  const params = url ? `?url=${encodeURIComponent(url)}` : ''
+  return request(`/chatterbox/voices/${encodeURIComponent(name)}${params}`, { method: 'DELETE' })
 }
 
-export async function getChatterboxLanguages(): Promise<string[]> {
-  const data = await request<{ languages: string[] }>('/chatterbox/languages')
+export async function getChatterboxLanguages(url?: string): Promise<string[]> {
+  const params = url ? `?url=${encodeURIComponent(url)}` : ''
+  const data = await request<{ languages: string[] }>(`/chatterbox/languages${params}`)
   return data.languages
 }
 

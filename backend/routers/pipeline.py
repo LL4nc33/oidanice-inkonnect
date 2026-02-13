@@ -29,6 +29,7 @@ def _resolve_translate(
 def _resolve_tts(
     tts_provider: str | None,
     voice: str | None,
+    chatterbox_url: str | None = None,
 ) -> tuple[TTSProvider, bool]:
     """Return (provider_instance, is_ad_hoc). Ad-hoc providers must be cleaned up."""
     if tts_provider == "chatterbox":
@@ -36,7 +37,7 @@ def _resolve_tts(
 
         s = get_settings()
         return ChatterboxRemoteProvider(
-            base_url=s.chatterbox_url,
+            base_url=chatterbox_url or s.chatterbox_url,
             voice=voice or s.chatterbox_voice,
         ), True
     return get_tts(), False
@@ -57,6 +58,7 @@ async def full_pipeline(
     provider: str | None = Query(None),
     api_url: str | None = Query(None),
     api_key: str | None = Query(None),
+    chatterbox_url: str | None = Query(None),
 ) -> PipelineResponse:
     start = time.perf_counter()
 
@@ -75,7 +77,7 @@ async def full_pipeline(
     # 3. TTS (optional)
     audio_b64: str | None = None
     if tts:
-        tts_impl, tts_ad_hoc = _resolve_tts(tts_provider, voice)
+        tts_impl, tts_ad_hoc = _resolve_tts(tts_provider, voice, chatterbox_url)
         try:
             audio_bytes = await tts_impl.synthesize(
                 translated,

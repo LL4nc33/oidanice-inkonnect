@@ -13,6 +13,8 @@ interface SettingsProps {
   onPiperVoiceChange: (voice: string) => void
   chatterboxVoice: string
   onChatterboxVoiceChange: (voice: string) => void
+  chatterboxUrl: string
+  onChatterboxUrlChange: (url: string) => void
   ollamaModel: string
   onOllamaModelChange: (model: string) => void
   ollamaUrl: string
@@ -71,6 +73,7 @@ export function Settings({
   ttsProvider, onTtsProviderChange,
   piperVoice, onPiperVoiceChange,
   chatterboxVoice, onChatterboxVoiceChange,
+  chatterboxUrl, onChatterboxUrlChange,
   ollamaModel, onOllamaModelChange,
   ollamaUrl, onOllamaUrlChange,
   translateProvider, onTranslateProviderChange,
@@ -112,16 +115,19 @@ export function Settings({
 
   const loadChatterboxVoices = useCallback(() => {
     setLoadingChatterboxVoices(true)
-    getChatterboxVoices()
+    getChatterboxVoices(chatterboxUrl || undefined)
       .then(setChatterboxVoices)
       .catch(() => setChatterboxVoices([]))
       .finally(() => setLoadingChatterboxVoices(false))
-  }, [])
+  }, [chatterboxUrl])
 
   useEffect(() => {
     loadVoices()
-    loadChatterboxVoices()
   }, [])
+
+  useEffect(() => {
+    loadChatterboxVoices()
+  }, [loadChatterboxVoices])
 
   useEffect(() => {
     setLoadingOllamaModels(true)
@@ -227,6 +233,13 @@ export function Settings({
 
               {ttsProvider === 'chatterbox' && (
                 <>
+                  <Input
+                    label="Chatterbox URL"
+                    placeholder="http://gpu00.node:4123"
+                    value={chatterboxUrl}
+                    onChange={(e) => onChatterboxUrlChange(e.target.value)}
+                  />
+
                   <SearchSelect
                     label={loadingChatterboxVoices ? 'Voice (loading...)' : 'Voice'}
                     value={chatterboxVoice}
@@ -247,6 +260,7 @@ export function Settings({
                     selectedVoice={chatterboxVoice}
                     onVoiceChange={onChatterboxVoiceChange}
                     onVoicesChanged={loadChatterboxVoices}
+                    chatterboxUrl={chatterboxUrl}
                   />
                 </>
               )}

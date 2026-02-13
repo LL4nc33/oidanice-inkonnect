@@ -37,6 +37,7 @@ export function App() {
           ttsProvider={settings.ttsProvider}
           piperVoice={settings.piperVoice}
           chatterboxVoice={settings.chatterboxVoice}
+          chatterboxUrl={settings.chatterboxUrl}
           ollamaModel={settings.ollamaModel}
           translateProvider={settings.translateProvider}
           openaiUrl={settings.openaiUrl}
@@ -58,6 +59,8 @@ export function App() {
           onPiperVoiceChange={(voice) => update({ piperVoice: voice })}
           chatterboxVoice={settings.chatterboxVoice}
           onChatterboxVoiceChange={(voice) => update({ chatterboxVoice: voice })}
+          chatterboxUrl={settings.chatterboxUrl}
+          onChatterboxUrlChange={(url) => update({ chatterboxUrl: url })}
           ollamaModel={settings.ollamaModel}
           onOllamaModelChange={(model) => update({ ollamaModel: model })}
           ollamaUrl={settings.ollamaUrl}
