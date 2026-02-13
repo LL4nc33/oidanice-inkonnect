@@ -1,10 +1,30 @@
 import { useState, useEffect } from 'react'
-import { Card, Select, Divider } from '@oidanice/ink-ui'
-import { getConfig } from '../api/inkonnect'
+import { Card, Select, Input, Divider, Button } from '@oidanice/ink-ui'
+import { getConfig, getOllamaModels, getOpenAIModels, getPiperVoices, downloadPiperVoice } from '../api/inkonnect'
+import { SearchSelect } from '../components/SearchSelect'
+import { ChatterboxVoiceManager } from '../components/ChatterboxVoiceManager'
 
 interface SettingsProps {
   ttsEnabled: boolean
   onTtsChange: (enabled: boolean) => void
+  ttsProvider: string
+  onTtsProviderChange: (provider: string) => void
+  piperVoice: string
+  onPiperVoiceChange: (voice: string) => void
+  chatterboxVoice: string
+  onChatterboxVoiceChange: (voice: string) => void
+  ollamaModel: string
+  onOllamaModelChange: (model: string) => void
+  ollamaUrl: string
+  onOllamaUrlChange: (url: string) => void
+  translateProvider: string
+  onTranslateProviderChange: (provider: string) => void
+  openaiUrl: string
+  onOpenaiUrlChange: (url: string) => void
+  openaiKey: string
+  onOpenaiKeyChange: (key: string) => void
+  openaiModel: string
+  onOpenaiModelChange: (model: string) => void
 }
 
 interface BackendConfig {
@@ -15,29 +35,218 @@ interface BackendConfig {
   whisper_model: string
   piper_voice: string
   ollama_model: string
+  chatterbox_url: string
+  chatterbox_voice: string
 }
 
-export function Settings({ ttsEnabled, onTtsChange }: SettingsProps) {
+export function Settings({
+  ttsEnabled, onTtsChange,
+  ttsProvider, onTtsProviderChange,
+  piperVoice, onPiperVoiceChange,
+  chatterboxVoice, onChatterboxVoiceChange,
+  ollamaModel, onOllamaModelChange,
+  ollamaUrl, onOllamaUrlChange,
+  translateProvider, onTranslateProviderChange,
+  openaiUrl, onOpenaiUrlChange,
+  openaiKey, onOpenaiKeyChange,
+  openaiModel, onOpenaiModelChange,
+}: SettingsProps) {
   const [config, setConfig] = useState<BackendConfig | null>(null)
+  const [ollamaModels, setOllamaModels] = useState<string[]>([])
+  const [openaiModels, setOpenaiModels] = useState<string[]>([])
+  const [loadingOllamaModels, setLoadingOllamaModels] = useState(false)
+  const [loadingOpenaiModels, setLoadingOpenaiModels] = useState(false)
+
+  const [piperVoices, setPiperVoices] = useState<string[]>([])
+  const [loadingVoices, setLoadingVoices] = useState(false)
+  const [newVoiceName, setNewVoiceName] = useState('')
+  const [downloading, setDownloading] = useState(false)
+  const [downloadStatus, setDownloadStatus] = useState<string | null>(null)
 
   useEffect(() => {
     getConfig().then(setConfig).catch(() => {})
   }, [])
+
+  const loadVoices = () => {
+    setLoadingVoices(true)
+    getPiperVoices()
+      .then(setPiperVoices)
+      .catch(() => setPiperVoices([]))
+      .finally(() => setLoadingVoices(false))
+  }
+
+  useEffect(() => {
+    loadVoices()
+  }, [])
+
+  useEffect(() => {
+    setLoadingOllamaModels(true)
+    getOllamaModels(ollamaUrl || undefined)
+      .then(setOllamaModels)
+      .catch(() => setOllamaModels([]))
+      .finally(() => setLoadingOllamaModels(false))
+  }, [ollamaUrl])
+
+  useEffect(() => {
+    if (translateProvider !== 'openai' || !openaiUrl) {
+      setOpenaiModels([])
+      return
+    }
+    setLoadingOpenaiModels(true)
+    getOpenAIModels(openaiUrl, openaiKey)
+      .then(setOpenaiModels)
+      .catch(() => setOpenaiModels([]))
+      .finally(() => setLoadingOpenaiModels(false))
+  }, [translateProvider, openaiUrl, openaiKey])
+
+  const handleDownload = async () => {
+    const name = newVoiceName.trim()
+    if (!name) return
+    setDownloading(true)
+    setDownloadStatus(null)
+    try {
+      const res = await downloadPiperVoice(name)
+      setDownloadStatus(res.message)
+      if (res.success) {
+        setNewVoiceName('')
+        loadVoices()
+      }
+    } catch (err) {
+      setDownloadStatus(err instanceof Error ? err.message : 'Download failed')
+    } finally {
+      setDownloading(false)
+    }
+  }
 
   return (
     <div className="space-y-4">
       <h2 className="font-serif text-xl">Settings</h2>
 
       <Card>
-        <h3 className="font-mono text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>output</h3>
-        <Select
-          label="Text-to-Speech"
-          value={ttsEnabled ? 'on' : 'off'}
-          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onTtsChange(e.target.value === 'on')}
-        >
-          <option value="on">Enabled</option>
-          <option value="off">Disabled</option>
-        </Select>
+        <h3 className="font-mono text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>text-to-speech</h3>
+        <div className="space-y-3">
+          <Select
+            label="TTS Output"
+            value={ttsEnabled ? 'on' : 'off'}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onTtsChange(e.target.value === 'on')}
+          >
+            <option value="on">Enabled</option>
+            <option value="off">Disabled</option>
+          </Select>
+
+          {ttsEnabled && (
+            <>
+              <Select
+                label="TTS Provider"
+                value={ttsProvider}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onTtsProviderChange(e.target.value)}
+              >
+                <option value="piper">Piper (Local)</option>
+                <option value="chatterbox">Chatterbox (Remote)</option>
+              </Select>
+
+              <Divider spacing="sm" />
+
+              {ttsProvider === 'piper' && (
+                <>
+                  <SearchSelect
+                    label={loadingVoices ? 'Voice (loading...)' : 'Voice'}
+                    value={piperVoice}
+                    options={piperVoices}
+                    placeholder="Backend default"
+                    onChange={onPiperVoiceChange}
+                  />
+
+                  <Divider spacing="sm" />
+
+                  <div className="space-y-2">
+                    <Input
+                      label="Download Voice"
+                      placeholder="e.g. en_US-lessac-high"
+                      value={newVoiceName}
+                      onChange={(e) => setNewVoiceName(e.target.value)}
+                    />
+                    <Button
+                      onClick={handleDownload}
+                      disabled={downloading || !newVoiceName.trim()}
+                    >
+                      {downloading ? 'Downloading...' : 'Download'}
+                    </Button>
+                    {downloadStatus && (
+                      <p className="font-mono text-xs" style={{ color: 'var(--text-secondary)' }}>
+                        {downloadStatus}
+                      </p>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {ttsProvider === 'chatterbox' && (
+                <ChatterboxVoiceManager
+                  selectedVoice={chatterboxVoice}
+                  onVoiceChange={onChatterboxVoiceChange}
+                />
+              )}
+            </>
+          )}
+        </div>
+      </Card>
+
+      <Card>
+        <h3 className="font-mono text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>translation provider</h3>
+        <div className="space-y-3">
+          <Select
+            label="Provider"
+            value={translateProvider}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onTranslateProviderChange(e.target.value)}
+          >
+            <option value="local">Ollama (Local)</option>
+            <option value="openai">OpenAI Compatible</option>
+          </Select>
+
+          {translateProvider === 'local' && (
+            <>
+              <Input
+                label="Ollama URL"
+                placeholder="http://localhost:11434"
+                value={ollamaUrl}
+                onChange={(e) => onOllamaUrlChange(e.target.value)}
+              />
+              <SearchSelect
+                label={loadingOllamaModels ? 'Model (loading...)' : 'Translation Model'}
+                value={ollamaModel}
+                options={ollamaModels}
+                placeholder="Search models..."
+                onChange={onOllamaModelChange}
+              />
+            </>
+          )}
+
+          {translateProvider === 'openai' && (
+            <>
+              <Input
+                label="API URL"
+                placeholder="https://openrouter.ai/api/v1"
+                value={openaiUrl}
+                onChange={(e) => onOpenaiUrlChange(e.target.value)}
+              />
+              <Input
+                label="API Key"
+                type="password"
+                placeholder="sk-..."
+                value={openaiKey}
+                onChange={(e) => onOpenaiKeyChange(e.target.value)}
+              />
+              <SearchSelect
+                label={loadingOpenaiModels ? 'Model (loading...)' : 'Model'}
+                value={openaiModel}
+                options={openaiModels}
+                placeholder="Search or type model name..."
+                onChange={onOpenaiModelChange}
+              />
+            </>
+          )}
+        </div>
       </Card>
 
       {config && (
@@ -58,6 +267,15 @@ export function Settings({ ttsEnabled, onTtsChange }: SettingsProps) {
               <dt>tts</dt>
               <dd>{config.tts_provider} ({config.piper_voice})</dd>
             </div>
+            {config.chatterbox_url && (
+              <>
+                <Divider spacing="sm" />
+                <div className="flex justify-between">
+                  <dt>chatterbox</dt>
+                  <dd>{config.chatterbox_voice} @ {config.chatterbox_url}</dd>
+                </div>
+              </>
+            )}
             <Divider spacing="sm" />
             <div className="flex justify-between">
               <dt>translate</dt>

@@ -3,6 +3,7 @@ import { Layout, DarkModeToggle, InstallPrompt, Button } from '@oidanice/ink-ui'
 import { useSettings } from './hooks/useSettings'
 import { Home } from './pages/Home'
 import { Settings } from './pages/Settings'
+import { Footer } from './components/Footer'
 
 type Page = 'home' | 'settings'
 
@@ -26,13 +27,21 @@ export function App() {
         </div>
       }
       banner={<InstallPrompt />}
-      footer={<span>inkonnect · oidanice</span>}
+      footer={<Footer />}
     >
       {page === 'home' ? (
         <Home
           sourceLang={settings.sourceLang}
           targetLang={settings.targetLang}
           ttsEnabled={settings.ttsEnabled}
+          ttsProvider={settings.ttsProvider}
+          piperVoice={settings.piperVoice}
+          chatterboxVoice={settings.chatterboxVoice}
+          ollamaModel={settings.ollamaModel}
+          translateProvider={settings.translateProvider}
+          openaiUrl={settings.openaiUrl}
+          openaiKey={settings.openaiKey}
+          openaiModel={settings.openaiModel}
           onSourceChange={(lang) => update({ sourceLang: lang })}
           onTargetChange={(lang) => update({ targetLang: lang })}
         />
@@ -40,6 +49,24 @@ export function App() {
         <Settings
           ttsEnabled={settings.ttsEnabled}
           onTtsChange={(enabled) => update({ ttsEnabled: enabled })}
+          ttsProvider={settings.ttsProvider}
+          onTtsProviderChange={(provider) => update({ ttsProvider: provider })}
+          piperVoice={settings.piperVoice}
+          onPiperVoiceChange={(voice) => update({ piperVoice: voice })}
+          chatterboxVoice={settings.chatterboxVoice}
+          onChatterboxVoiceChange={(voice) => update({ chatterboxVoice: voice })}
+          ollamaModel={settings.ollamaModel}
+          onOllamaModelChange={(model) => update({ ollamaModel: model })}
+          ollamaUrl={settings.ollamaUrl}
+          onOllamaUrlChange={(url) => update({ ollamaUrl: url })}
+          translateProvider={settings.translateProvider}
+          onTranslateProviderChange={(provider) => update({ translateProvider: provider })}
+          openaiUrl={settings.openaiUrl}
+          onOpenaiUrlChange={(url) => update({ openaiUrl: url })}
+          openaiKey={settings.openaiKey}
+          onOpenaiKeyChange={(key) => update({ openaiKey: key })}
+          openaiModel={settings.openaiModel}
+          onOpenaiModelChange={(model) => update({ openaiModel: model })}
         />
       )}
     </Layout>

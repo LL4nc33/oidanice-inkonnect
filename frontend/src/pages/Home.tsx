@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Progress } from '@oidanice/ink-ui'
-import { pipeline } from '../api/inkonnect'
+import { pipeline, ProviderOptions } from '../api/inkonnect'
 import { useAudioRecorder } from '../hooks/useAudioRecorder'
 import { RecordButton } from '../components/RecordButton'
 import { TranscriptDisplay } from '../components/TranscriptDisplay'
@@ -11,6 +11,14 @@ interface HomeProps {
   sourceLang: string
   targetLang: string
   ttsEnabled: boolean
+  ttsProvider: string
+  piperVoice: string
+  chatterboxVoice: string
+  ollamaModel: string
+  translateProvider: string
+  openaiUrl: string
+  openaiKey: string
+  openaiModel: string
   onSourceChange: (lang: string) => void
   onTargetChange: (lang: string) => void
 }
@@ -23,7 +31,7 @@ interface Result {
   durationMs: number
 }
 
-export function Home({ sourceLang, targetLang, ttsEnabled, onSourceChange, onTargetChange }: HomeProps) {
+export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoice, chatterboxVoice, ollamaModel, translateProvider, openaiUrl, openaiKey, openaiModel, onSourceChange, onTargetChange }: HomeProps) {
   const recorder = useAudioRecorder()
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<Result | null>(null)
@@ -38,11 +46,21 @@ export function Home({ sourceLang, targetLang, ttsEnabled, onSourceChange, onTar
       setLoading(true)
       setError(null)
       try {
+        const providerOpts: ProviderOptions | undefined =
+          translateProvider === 'openai' && openaiUrl
+            ? { provider: 'openai', apiUrl: openaiUrl, apiKey: openaiKey || undefined }
+            : undefined
+        const model = translateProvider === 'openai' ? openaiModel || undefined : ollamaModel || undefined
+        const activeTtsProvider = ttsProvider === 'chatterbox' ? 'chatterbox' : undefined
         const res = await pipeline(
           recorder.blob!,
           sourceLang || undefined,
           targetLang,
           ttsEnabled,
+          (ttsProvider === 'chatterbox' ? chatterboxVoice : piperVoice) || undefined,
+          model,
+          providerOpts,
+          activeTtsProvider,
         )
         setResult({
           originalText: res.original_text,
@@ -58,7 +76,7 @@ export function Home({ sourceLang, targetLang, ttsEnabled, onSourceChange, onTar
       }
     }
     process()
-  }, [recorder.blob, sourceLang, targetLang, ttsEnabled])
+  }, [recorder.blob, sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoice, chatterboxVoice, ollamaModel, translateProvider, openaiUrl, openaiKey, openaiModel])
 
   return (
     <div className="space-y-4">
