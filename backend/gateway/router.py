@@ -82,6 +82,8 @@ async def speech(
             cfg_weight=req.cfg_weight,
             temperature=req.temperature,
         )
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc))
     finally:
         if ad_hoc:
             await tts_impl.cleanup()
@@ -133,6 +135,8 @@ async def translate(
     translator, ad_hoc = resolve_translate(None, None, None, req.model)
     try:
         translated = await translator.translate(req.text, req.source, req.target, req.model)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc))
     finally:
         if ad_hoc:
             await translator.cleanup()
@@ -175,6 +179,8 @@ async def pipeline(
     translator, t_ad_hoc = resolve_translate(None, None, None, model)
     try:
         translated = await translator.translate(text, detected_lang, target_lang, model)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc))
     finally:
         if t_ad_hoc:
             await translator.cleanup()
@@ -186,6 +192,8 @@ async def pipeline(
         tts_impl, tts_ad_hoc = resolve_tts(tts_provider_name, voice)
         try:
             audio_bytes = await tts_impl.synthesize(translated, target_lang, voice)
+        except RuntimeError as exc:
+            raise HTTPException(status_code=502, detail=str(exc))
         finally:
             if tts_ad_hoc:
                 await tts_impl.cleanup()
