@@ -35,6 +35,8 @@ interface SettingsProps {
   onChatterboxTemperatureChange: (value: number) => void
   autoPlay: boolean
   onAutoPlayChange: (enabled: boolean) => void
+  thinking: boolean
+  onThinkingChange: (enabled: boolean) => void
 }
 
 function RangeSlider({ label, value, min, max, step, onChange }: {
@@ -86,6 +88,7 @@ export function Settings({
   chatterboxCfgWeight, onChatterboxCfgWeightChange,
   chatterboxTemperature, onChatterboxTemperatureChange,
   autoPlay, onAutoPlayChange,
+  thinking, onThinkingChange,
 }: SettingsProps) {
   const [config, setConfig] = useState<BackendConfig | null>(null)
   const [gpuStatus, setGpuStatus] = useState<GpuStatus | null>(null)
@@ -291,6 +294,15 @@ export function Settings({
           >
             <option value="local">Ollama</option>
             <option value="openai">OpenAI Compatible</option>
+          </Select>
+
+          <Select
+            label="Thinking"
+            value={thinking ? 'on' : 'off'}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onThinkingChange(e.target.value === 'on')}
+          >
+            <option value="on">Enabled</option>
+            <option value="off">Disabled</option>
           </Select>
 
           {translateProvider === 'local' && (

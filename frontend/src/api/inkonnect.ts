@@ -108,6 +108,7 @@ export async function pipeline(
   synthesisParams?: SynthesisParams,
   chatterboxUrl?: string,
   ollamaUrl?: string,
+  thinking?: boolean,
 ): Promise<PipelineResponse> {
   const form = new FormData()
   form.append('file', audio, 'recording.webm')
@@ -126,6 +127,7 @@ export async function pipeline(
   if (synthesisParams?.temperature != null) params.set('temperature', String(synthesisParams.temperature))
   if (chatterboxUrl) params.set('chatterbox_url', chatterboxUrl)
   if (ollamaUrl) params.set('ollama_url', ollamaUrl)
+  if (thinking === false) params.set('thinking', 'false')
   return request(`/pipeline?${params}`, { method: 'POST', body: form })
 }
 

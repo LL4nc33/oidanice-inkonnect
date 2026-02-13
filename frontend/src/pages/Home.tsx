@@ -27,6 +27,7 @@ interface HomeProps {
   chatterboxCfgWeight: number
   chatterboxTemperature: number
   autoPlay: boolean
+  thinking: boolean
   onSourceChange: (lang: string) => void
   onTargetChange: (lang: string) => void
 }
@@ -41,7 +42,7 @@ interface Result {
   durationMs: number
 }
 
-export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoice, chatterboxVoice, chatterboxUrl, ollamaModel, ollamaUrl, translateProvider, openaiUrl, openaiKey, openaiModel, chatterboxExaggeration, chatterboxCfgWeight, chatterboxTemperature, autoPlay, onSourceChange, onTargetChange }: HomeProps) {
+export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoice, chatterboxVoice, chatterboxUrl, ollamaModel, ollamaUrl, translateProvider, openaiUrl, openaiKey, openaiModel, chatterboxExaggeration, chatterboxCfgWeight, chatterboxTemperature, autoPlay, thinking, onSourceChange, onTargetChange }: HomeProps) {
   const [phase, setPhase] = useState<Phase>('idle')
   const [result, setResult] = useState<Result | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -87,6 +88,7 @@ export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoi
         synthesisParams,
         ttsProvider === 'chatterbox' ? chatterboxUrl || undefined : undefined,
         translateProvider === 'local' ? ollamaUrl || undefined : undefined,
+        thinking ? undefined : false,
       )
       setResult({
         originalText: res.original_text,
