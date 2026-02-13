@@ -8,3 +8,6 @@ models/
 .vite/
 .DS_Store
 *.log
+.serena/
+.playwright-mcp/
+workflow/
