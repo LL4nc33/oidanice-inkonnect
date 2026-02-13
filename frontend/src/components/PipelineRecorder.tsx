@@ -5,14 +5,25 @@ import { useVoiceRecorder } from '../hooks/useVoiceRecorder'
 interface PipelineRecorderProps {
   onProcess: (blob: Blob) => void
   disabled?: boolean
+  autoStart?: boolean
   onRecordingStart?: () => void
   onRecordingChange?: (isRecording: boolean) => void
   triggerToggle?: number
 }
 
-export function PipelineRecorder({ onProcess, disabled, onRecordingStart, onRecordingChange, triggerToggle }: PipelineRecorderProps) {
+export function PipelineRecorder({ onProcess, disabled, autoStart, onRecordingStart, onRecordingChange, triggerToggle }: PipelineRecorderProps) {
   const recorder = useVoiceRecorder()
   const processedRef = useRef<Blob | null>(null)
+  const autoStarted = useRef(false)
+
+  // Auto-start recording on mount when autoStart is true
+  useEffect(() => {
+    if (autoStart && !autoStarted.current && !recorder.isRecording) {
+      autoStarted.current = true
+      recorder.start()
+      onRecordingStart?.()
+    }
+  }, [autoStart, recorder, onRecordingStart])
 
   useEffect(() => {
     onRecordingChange?.(recorder.isRecording)

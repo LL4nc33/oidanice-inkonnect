@@ -47,6 +47,7 @@ export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoi
   const [error, setError] = useState<string | null>(null)
   const [spaceToggle, setSpaceToggle] = useState(0)
   const [statusMessage, setStatusMessage] = useState('')
+  const [autoStart, setAutoStart] = useState(false)
   const lastBlob = useRef<Blob | null>(null)
 
   const handleRecordingChange = useCallback((recording: boolean) => {
@@ -108,6 +109,7 @@ export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoi
   }
 
   const handleReset = () => {
+    setAutoStart(true)
     setPhase('idle')
     setResult(null)
     setError(null)
@@ -115,6 +117,7 @@ export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoi
   }
 
   const handleRecordingStart = () => {
+    setAutoStart(false)
     setResult(null)
     setError(null)
     if (translateProvider === 'local') {
@@ -135,6 +138,7 @@ export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoi
         <PipelineRecorder
           onProcess={handleProcess}
           disabled={false}
+          autoStart={autoStart}
           onRecordingStart={handleRecordingStart}
           onRecordingChange={handleRecordingChange}
           triggerToggle={spaceToggle}
