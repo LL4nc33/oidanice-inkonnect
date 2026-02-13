@@ -46,21 +46,28 @@ class WhisperLocalProvider(STTProvider):
         return self._model
 
     async def transcribe(self, audio: bytes, language: str | None = None) -> tuple[str, str]:
+        if not audio or len(audio) < 100:
+            return "", language or "unknown"
+
         model = self._ensure_model()
 
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=True) as tmp:
+        # Use .webm suffix — ffmpeg (bundled with faster-whisper) handles the conversion
+        with tempfile.NamedTemporaryFile(suffix=".webm", delete=True) as tmp:
             tmp.write(audio)
             tmp.flush()
 
-            segments, info = model.transcribe(
-                tmp.name,
-                language=language,
-                beam_size=5,
-                vad_filter=True,
-            )
-
-            text = " ".join(seg.text.strip() for seg in segments)
-            detected_lang = info.language or language or "unknown"
+            try:
+                segments, info = model.transcribe(
+                    tmp.name,
+                    language=language,
+                    beam_size=5,
+                    vad_filter=True,
+                )
+                text = " ".join(seg.text.strip() for seg in segments)
+                detected_lang = info.language or language or "unknown"
+            except ValueError:
+                logger.warning("Whisper could not process audio (%d bytes)", len(audio))
+                return "", language or "unknown"
 
         return text, detected_lang
 

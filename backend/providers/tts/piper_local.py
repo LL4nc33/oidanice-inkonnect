@@ -1,6 +1,7 @@
 import io
 import logging
 import wave
+from pathlib import Path
 
 from piper import PiperVoice
 
@@ -8,20 +9,31 @@ from backend.providers.base import TTSProvider
 
 logger = logging.getLogger(__name__)
 
+MODELS_DIR = Path("/app/piper-voices")
+
 
 class PiperLocalProvider(TTSProvider):
     def __init__(self, voice: str) -> None:
         self._voice_name = voice
-        self._voice: PiperVoice | None = None
+        self._voices: dict[str, PiperVoice] = {}
 
-    def _ensure_voice(self) -> PiperVoice:
-        if self._voice is None:
-            logger.info("Loading Piper voice=%s", self._voice_name)
-            self._voice = PiperVoice.load(self._voice_name)
-        return self._voice
+    def _load_voice(self, name: str) -> PiperVoice:
+        if name in self._voices:
+            return self._voices[name]
+
+        model_path = MODELS_DIR / f"{name}.onnx"
+        if model_path.exists():
+            logger.info("Loading Piper voice=%s from %s", name, model_path)
+            voice = PiperVoice.load(str(model_path))
+        else:
+            raise FileNotFoundError(f"Voice model not found: {model_path}")
+
+        self._voices[name] = voice
+        return voice
 
     async def synthesize(self, text: str, lang: str, voice: str | None = None) -> bytes:
-        piper_voice = self._ensure_voice()
+        voice_name = voice or self._voice_name
+        piper_voice = self._load_voice(voice_name)
 
         buf = io.BytesIO()
         with wave.open(buf, "wb") as wav:
@@ -35,4 +47,4 @@ class PiperLocalProvider(TTSProvider):
         return buf.getvalue()
 
     async def cleanup(self) -> None:
-        self._voice = None
+        self._voices.clear()

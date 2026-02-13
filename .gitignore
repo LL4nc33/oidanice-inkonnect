@@ -8,4 +8,3 @@ models/
 .vite/
 .DS_Store
 *.log
-claude-workflow-engine/
