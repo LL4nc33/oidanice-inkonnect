@@ -351,34 +351,37 @@ export function Settings({
               <dt>stt</dt>
               <dd>{config.stt_provider} ({config.whisper_model})</dd>
             </div>
-            <Divider spacing="sm" />
-            <div className="flex justify-between">
-              <dt>tts</dt>
-              <dd>{config.tts_provider} ({config.piper_voice})</dd>
-            </div>
-            {config.chatterbox_url && (
+            {ttsEnabled && (
               <>
                 <Divider spacing="sm" />
                 <div className="flex justify-between">
-                  <dt>chatterbox</dt>
-                  <dd>{config.chatterbox_voice} @ {config.chatterbox_url}</dd>
+                  <dt>tts</dt>
+                  <dd>
+                    {ttsProvider === 'chatterbox'
+                      ? `chatterbox (${chatterboxVoice || config.chatterbox_voice})`
+                      : `piper (${piperVoice || config.piper_voice})`}
+                  </dd>
                 </div>
               </>
             )}
             <Divider spacing="sm" />
             <div className="flex justify-between">
               <dt>translate</dt>
-              <dd>{config.translate_provider} ({config.ollama_model})</dd>
+              <dd>
+                {translateProvider === 'openai'
+                  ? `openai (${openaiModel || 'default'})`
+                  : `ollama (${ollamaModel || config.ollama_model})`}
+              </dd>
             </div>
-            {gpuStatus && (
+            {gpuStatus && (ttsProvider === 'chatterbox' || translateProvider === 'local') && (
               <>
                 <Divider spacing="sm" />
                 <div className="flex justify-between">
                   <dt>gpu</dt>
                   <dd className="text-right">
-                    {gpuStatus.ollama.error ? 'ollama: offline' : 'ollama: online'}
-                    {' / '}
-                    {gpuStatus.chatterbox.error ? 'chatterbox: offline' : 'chatterbox: online'}
+                    {translateProvider === 'local' && (gpuStatus.ollama.error ? 'ollama: offline' : 'ollama: online')}
+                    {translateProvider === 'local' && ttsProvider === 'chatterbox' && ' / '}
+                    {ttsProvider === 'chatterbox' && (gpuStatus.chatterbox.error ? 'chatterbox: offline' : 'chatterbox: online')}
                   </dd>
                 </div>
               </>
