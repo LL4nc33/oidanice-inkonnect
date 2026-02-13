@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.3.0-black?style=flat-square" alt="Version" />
+  <img src="https://img.shields.io/badge/version-0.3.1-black?style=flat-square" alt="Version" />
   <img src="https://img.shields.io/badge/docker-compose-black?style=flat-square&logo=docker&logoColor=white" alt="Docker" />
   <img src="https://img.shields.io/badge/whisper-AI-black?style=flat-square" alt="Whisper" />
   <img src="https://img.shields.io/badge/PWA-installable-black?style=flat-square" alt="PWA" />
@@ -24,13 +24,15 @@
 - **Full pipeline** -- record, transcribe, translate, and speak back in one step
 - **API Gateway** -- OpenAI-compatible `/v1/*` API for external clients with auth and rate limiting
 - **Speech-to-Text** -- faster-whisper with automatic language detection for 99 languages
-- **Text-to-Speech** -- Piper TTS (local, CPU) and Chatterbox TTS (remote, GPU) with voice cloning
+- **Text-to-Speech** -- Piper TTS (CPU) and Chatterbox TTS (GPU) with voice cloning
 - **Voice cloning** -- record or upload voice samples, manage voices, 22 supported languages
 - **Synthesis control** -- adjustable exaggeration, cfg_weight, and temperature for Chatterbox
 - **Auto-play** -- translation audio plays automatically after pipeline completes (configurable)
 - **Smart GPU management** -- Ollama preloading on record start, automatic VRAM cleanup
 - **Translation** -- Ollama LLM or OpenAI-compatible APIs (OpenRouter, etc.)
-- **Ink-inspired UI** -- monochrome design with dark mode, serif typography, no distractions
+- **Neobrutalism UI** -- monochrome design with offset shadows, dark mode, serif typography
+- **Recording UX** -- live timer, auto-process on stop, copy text, download audio, retry pipeline
+- **Keyboard shortcuts** -- Space bar to start/stop recording
 - **Installable PWA** -- add to home screen on mobile with browser-specific install prompts
 - **Provider pattern** -- swap local and cloud providers at runtime from the frontend
 - **One-command setup** -- Docker Compose brings up all services in seconds
@@ -112,10 +114,10 @@ Auth and rate limiting are configurable via `GATEWAY_API_KEYS` and `GATEWAY_RATE
 | UI | @oidanice/ink-ui |
 | Backend | FastAPI, Python 3.11 |
 | STT | faster-whisper (CTranslate2) |
-| TTS | Piper TTS (local), Chatterbox TTS (remote GPU) |
+| TTS | Piper TTS, Chatterbox TTS |
 | Translation | Ollama, OpenAI-compatible |
 | Infrastructure | Docker Compose |
 
 ---
 
-Built by [OidaNice](https://github.com/LL4nc33) -- powered by faster-whisper, piper, chatterbox & ollama -- v0.3.0
+Built by [OidaNice](https://github.com/LL4nc33) -- powered by faster-whisper, piper, chatterbox & ollama -- v0.3.1

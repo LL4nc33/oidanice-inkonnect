@@ -38,15 +38,32 @@
 - [x] Shared resolver (DRY provider resolution)
 - [x] Chatterbox multilingual support (language_id)
 
-## v1.0 -- Production
+## v0.3.1 -- UX Overhaul (done)
+
+- [x] Recording timer (live duration display)
+- [x] Auto-process on stop (no extra "process" click)
+- [x] New recording starts recording immediately
+- [x] Copy-to-clipboard for original text and translation
+- [x] Audio playback state indicator (playing/idle)
+- [x] Audio download button
+- [x] Retry pipeline without re-recording
+- [x] Error card with retry action
+- [x] Keyboard shortcut: Space to start/stop recording
+- [x] aria-live regions for screen reader announcements
+- [x] Neobrutalism design: offset shadows, 2px borders, primary button variant
+- [x] Shadow variable (--shadow) for visible depth on all backgrounds
+- [x] Backend info shows only active providers
+- [x] GPU status uses frontend-configured URLs
+- [x] Removed local/remote labels from provider dropdowns
+
+## v0.4 -- Production
 
 - [ ] End-to-end testing
-- [ ] Error recovery and retry logic
 - [ ] Accessibility audit (WCAG 2.1 AA)
 - [ ] Chatterbox Turbo support (paralinguistic tags, emotions)
 - [ ] Streaming TTS (chunked audio playback)
 
-## v2.0 -- Enhanced
+## v0.5 -- Enhanced
 
 - [ ] Conversation mode (continuous recording)
 - [ ] WebSocket streaming for real-time transcription

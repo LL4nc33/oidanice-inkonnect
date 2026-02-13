@@ -26,7 +26,7 @@
                            └────────┘ └──────┘ └────────┘
                                       ┌─▼──────────┐
                                       │ Chatterbox  │
-                                      │ (GPU, remote)│
+                                      │   (GPU)     │
                                       └─────────────┘
 ```
 
@@ -53,7 +53,7 @@ Each AI capability (STT, TTS, Translation) is abstracted behind an interface in 
 
 - `providers/stt/whisper_local.py` -- faster-whisper (CPU)
 - `providers/tts/piper_local.py` -- Piper TTS (CPU, local)
-- `providers/tts/chatterbox_remote.py` -- Chatterbox TTS (GPU, remote API)
+- `providers/tts/chatterbox_remote.py` -- Chatterbox TTS (GPU)
 - `providers/translate/ollama_local.py` -- Ollama LLM (GPU)
 - `providers/translate/openai_compat.py` -- OpenAI-compatible APIs (remote)
 
@@ -96,14 +96,18 @@ When Ollama and Chatterbox share a GPU (e.g. RTX 2060 12GB):
 ## Frontend Architecture
 
 - `App.tsx` -- Layout shell with page routing, settings state management
-- `pages/Home.tsx` -- Recording, pipeline, auto-play
-- `pages/Settings.tsx` -- Provider config, voice management, synthesis parameters
+- `pages/Home.tsx` -- State machine (idle → recording → processing → result/error), keyboard shortcuts
+- `pages/Settings.tsx` -- Provider config, voice management, synthesis parameters, backend info (active providers only)
 - `components/` -- Reusable UI components built on ink-ui
-  - `VoiceRecorder.tsx` -- Browser microphone recording with preview
+  - `PipelineRecorder.tsx` -- Record with timer, auto-process on stop, auto-start for "new recording"
+  - `TranscriptDisplay.tsx` -- Original + translated text with copy-to-clipboard
+  - `SpeakButton.tsx` -- Audio playback with playing state and download
+  - `ResultActions.tsx` -- Retry pipeline, new recording
+  - `ErrorCard.tsx` -- Error display with retry action
+  - `VoiceRecorder.tsx` -- Browser microphone recording with preview (used by ChatterboxVoiceManager)
   - `ChatterboxVoiceManager.tsx` -- Voice upload, recording, deletion
   - `SearchSelect.tsx` -- Filterable dropdown for voices/models
-  - `SpeakButton.tsx` -- Audio playback with auto-play support
-- `hooks/` -- Audio recording (`useAudioRecorder`), voice recording (`useVoiceRecorder`), settings persistence (`useSettings`)
+- `hooks/` -- `useVoiceRecorder` (timer, preview), `useSettings` (localStorage), `useClipboard` (copy feedback), `useKeyboardShortcut` (Space to record)
 - `api/inkonnect.ts` -- Typed fetch wrapper for all backend endpoints
 
 ## Backend Structure
