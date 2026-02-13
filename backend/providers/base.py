@@ -21,10 +21,7 @@ class TTSProvider(ABC):
 
 class TranslateProvider(ABC):
     @abstractmethod
-    async def translate(
-        self, text: str, source: str, target: str,
-        model: str | None = None, thinking: bool = True,
-    ) -> str:
+    async def translate(self, text: str, source: str, target: str, model: str | None = None) -> str:
         """Translate text. Returns translated string."""
 
     async def cleanup(self) -> None:

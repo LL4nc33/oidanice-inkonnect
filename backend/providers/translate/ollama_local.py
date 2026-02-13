@@ -19,32 +19,25 @@ class OllamaLocalProvider(TranslateProvider):
         self._base_url = base_url.rstrip("/")
         self._client = httpx.AsyncClient(timeout=120.0)
 
-    async def translate(
-        self, text: str, source: str, target: str,
-        model: str | None = None, thinking: bool = True,
-    ) -> str:
+    async def translate(self, text: str, source: str, target: str, model: str | None = None) -> str:
         if not text.strip():
             return ""
 
         system = SYSTEM_PROMPT.format(source=source, target=target)
 
-        payload: dict = {
-            "model": model or self._model,
-            "messages": [
-                {"role": "system", "content": system},
-                {"role": "user", "content": text},
-            ],
-            "stream": False,
-            "keep_alive": "30s",
-            "options": {"temperature": 0.3},
-        }
-        if not thinking:
-            payload["think"] = False
-
         try:
             response = await self._client.post(
                 f"{self._base_url}/api/chat",
-                json=payload,
+                json={
+                    "model": model or self._model,
+                    "messages": [
+                        {"role": "system", "content": system},
+                        {"role": "user", "content": text},
+                    ],
+                    "stream": False,
+                    "keep_alive": "30s",
+                    "options": {"temperature": 0.3},
+                },
             )
             response.raise_for_status()
         except httpx.HTTPStatusError as e:

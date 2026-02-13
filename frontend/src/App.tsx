@@ -48,7 +48,6 @@ export function App() {
           chatterboxCfgWeight={settings.chatterboxCfgWeight}
           chatterboxTemperature={settings.chatterboxTemperature}
           autoPlay={settings.autoPlay}
-          thinking={settings.thinking}
           onSourceChange={(lang) => update({ sourceLang: lang })}
           onTargetChange={(lang) => update({ targetLang: lang })}
         />
@@ -84,8 +83,6 @@ export function App() {
           onChatterboxTemperatureChange={(v) => update({ chatterboxTemperature: v })}
           autoPlay={settings.autoPlay}
           onAutoPlayChange={(v) => update({ autoPlay: v })}
-          thinking={settings.thinking}
-          onThinkingChange={(v) => update({ thinking: v })}
         />
       )}
     </Layout>

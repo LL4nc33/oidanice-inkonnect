@@ -22,10 +22,7 @@ class OpenAICompatProvider(TranslateProvider):
             headers["Authorization"] = f"Bearer {api_key}"
         self._client = httpx.AsyncClient(timeout=120.0, headers=headers)
 
-    async def translate(
-        self, text: str, source: str, target: str,
-        model: str | None = None, thinking: bool = True,
-    ) -> str:
+    async def translate(self, text: str, source: str, target: str, model: str | None = None) -> str:
         if not text.strip():
             return ""
 
