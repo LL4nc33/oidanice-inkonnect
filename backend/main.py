@@ -61,6 +61,11 @@ app.include_router(translate.router)
 app.include_router(pipeline.router)
 app.include_router(config.router)
 
+# Gateway (v1 API for external clients)
+if Settings().gateway_enabled:
+    from backend.gateway.router import gateway_router
+    app.include_router(gateway_router)
+
 _static_dir = Path(__file__).resolve().parent.parent / "static"
 if _static_dir.exists():
     @app.get("/")

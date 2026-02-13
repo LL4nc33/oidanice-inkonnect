@@ -29,4 +29,10 @@ class Settings(BaseSettings):
     elevenlabs_api_key: str | None = None
     deepl_api_key: str | None = None
 
+    # Gateway
+    gateway_enabled: bool = True
+    gateway_api_keys: str = ""          # comma-separated, empty = no auth
+    gateway_rate_limit: int = 60        # requests per minute per key
+    gateway_max_audio_mb: int = 25      # max upload size in MB
+
     model_config = {"env_file": ".env"}
