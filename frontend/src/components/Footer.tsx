@@ -18,14 +18,14 @@ export function Footer() {
   }, [])
 
   return (
-    <span style={{ whiteSpace: 'nowrap' }}>
+    <span style={{ whiteSpace: 'nowrap', fontSize: 'min(0.75rem, 2.8vw)' }}>
+      powered by{' '}
       <span
         style={{
           opacity: visible ? 1 : 0,
           transition: 'opacity 0.4s ease',
           display: 'inline-block',
           minWidth: '7ch',
-          textAlign: 'center',
         }}
       >
         {STACK[index]}
