@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, Select, Input, Divider, Button } from '@oidanice/ink-ui'
-import { getConfig, getOllamaModels, getOpenAIModels, getPiperVoices, downloadPiperVoice, getGpuStatus, GpuStatus } from '../api/inkonnect'
+import { getConfig, getOllamaModels, getOpenAIModels, getPiperVoices, downloadPiperVoice, getGpuStatus, getChatterboxVoices, GpuStatus, ChatterboxVoice } from '../api/inkonnect'
 import { SearchSelect } from '../components/SearchSelect'
 import { ChatterboxVoiceManager } from '../components/ChatterboxVoiceManager'
 
@@ -31,6 +31,27 @@ interface SettingsProps {
   onChatterboxCfgWeightChange: (value: number) => void
   chatterboxTemperature: number
   onChatterboxTemperatureChange: (value: number) => void
+}
+
+function RangeSlider({ label, value, min, max, step, onChange }: {
+  label: string; value: number; min: number; max: number; step: number
+  onChange: (v: number) => void
+}) {
+  return (
+    <label className="flex items-center gap-2 font-mono text-xs" style={{ color: 'var(--text-secondary)' }}>
+      <span className="w-24 shrink-0">{label}</span>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        className="flex-1"
+        onChange={(e) => onChange(parseFloat(e.target.value))}
+      />
+      <span className="w-10 text-right">{value.toFixed(2)}</span>
+    </label>
+  )
 }
 
 interface BackendConfig {
@@ -73,6 +94,9 @@ export function Settings({
   const [downloading, setDownloading] = useState(false)
   const [downloadStatus, setDownloadStatus] = useState<string | null>(null)
 
+  const [chatterboxVoices, setChatterboxVoices] = useState<ChatterboxVoice[]>([])
+  const [loadingChatterboxVoices, setLoadingChatterboxVoices] = useState(false)
+
   useEffect(() => {
     getConfig().then(setConfig).catch(() => {})
     getGpuStatus().then(setGpuStatus).catch(() => {})
@@ -86,8 +110,17 @@ export function Settings({
       .finally(() => setLoadingVoices(false))
   }
 
+  const loadChatterboxVoices = useCallback(() => {
+    setLoadingChatterboxVoices(true)
+    getChatterboxVoices()
+      .then(setChatterboxVoices)
+      .catch(() => setChatterboxVoices([]))
+      .finally(() => setLoadingChatterboxVoices(false))
+  }, [])
+
   useEffect(() => {
     loadVoices()
+    loadChatterboxVoices()
   }, [])
 
   useEffect(() => {
@@ -193,16 +226,29 @@ export function Settings({
               )}
 
               {ttsProvider === 'chatterbox' && (
-                <ChatterboxVoiceManager
-                  selectedVoice={chatterboxVoice}
-                  onVoiceChange={onChatterboxVoiceChange}
-                  exaggeration={chatterboxExaggeration}
-                  onExaggerationChange={onChatterboxExaggerationChange}
-                  cfgWeight={chatterboxCfgWeight}
-                  onCfgWeightChange={onChatterboxCfgWeightChange}
-                  temperature={chatterboxTemperature}
-                  onTemperatureChange={onChatterboxTemperatureChange}
-                />
+                <>
+                  <SearchSelect
+                    label={loadingChatterboxVoices ? 'Voice (loading...)' : 'Voice'}
+                    value={chatterboxVoice}
+                    options={chatterboxVoices.map((v) => v.name)}
+                    placeholder="Select voice..."
+                    onChange={onChatterboxVoiceChange}
+                  />
+
+                  <div className="space-y-2 mt-2">
+                    <RangeSlider label="exaggeration" value={chatterboxExaggeration} min={0.25} max={2.0} step={0.05} onChange={onChatterboxExaggerationChange} />
+                    <RangeSlider label="cfg_weight" value={chatterboxCfgWeight} min={0.0} max={1.0} step={0.05} onChange={onChatterboxCfgWeightChange} />
+                    <RangeSlider label="temperature" value={chatterboxTemperature} min={0.05} max={5.0} step={0.05} onChange={onChatterboxTemperatureChange} />
+                  </div>
+
+                  <Divider spacing="sm" />
+
+                  <ChatterboxVoiceManager
+                    selectedVoice={chatterboxVoice}
+                    onVoiceChange={onChatterboxVoiceChange}
+                    onVoicesChanged={loadChatterboxVoices}
+                  />
+                </>
               )}
             </>
           )}

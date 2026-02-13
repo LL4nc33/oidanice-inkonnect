@@ -1,49 +1,17 @@
 import { useState, useEffect, useRef } from 'react'
 import { Input, Select, Button, Divider } from '@oidanice/ink-ui'
-import { getChatterboxVoices, uploadChatterboxVoice, deleteChatterboxVoice, getChatterboxLanguages, ChatterboxVoice } from '../api/inkonnect'
-import { SearchSelect } from './SearchSelect'
+import { uploadChatterboxVoice, deleteChatterboxVoice, getChatterboxLanguages } from '../api/inkonnect'
 import { VoiceRecorder } from './VoiceRecorder'
 
 interface ChatterboxVoiceManagerProps {
   selectedVoice: string
   onVoiceChange: (voice: string) => void
-  exaggeration: number
-  onExaggerationChange: (v: number) => void
-  cfgWeight: number
-  onCfgWeightChange: (v: number) => void
-  temperature: number
-  onTemperatureChange: (v: number) => void
-}
-
-function RangeSlider({ label, value, min, max, step, onChange }: {
-  label: string; value: number; min: number; max: number; step: number
-  onChange: (v: number) => void
-}) {
-  return (
-    <label className="flex items-center gap-2 font-mono text-xs" style={{ color: 'var(--text-secondary)' }}>
-      <span className="w-24 shrink-0">{label}</span>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        className="flex-1"
-        onChange={(e) => onChange(parseFloat(e.target.value))}
-      />
-      <span className="w-10 text-right">{value.toFixed(2)}</span>
-    </label>
-  )
+  onVoicesChanged: () => void
 }
 
 export function ChatterboxVoiceManager({
-  selectedVoice, onVoiceChange,
-  exaggeration, onExaggerationChange,
-  cfgWeight, onCfgWeightChange,
-  temperature, onTemperatureChange,
+  selectedVoice, onVoiceChange, onVoicesChanged,
 }: ChatterboxVoiceManagerProps) {
-  const [voices, setVoices] = useState<ChatterboxVoice[]>([])
-  const [loadingVoices, setLoadingVoices] = useState(false)
   const [languages, setLanguages] = useState<string[]>([])
   const [uploadStatus, setUploadStatus] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -61,22 +29,11 @@ export function ChatterboxVoiceManager({
   const [fileUploading, setFileUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const loadVoices = () => {
-    setLoadingVoices(true)
-    getChatterboxVoices()
-      .then(setVoices)
-      .catch(() => setVoices([]))
-      .finally(() => setLoadingVoices(false))
-  }
-
   useEffect(() => {
-    loadVoices()
     getChatterboxLanguages()
       .then(setLanguages)
       .catch(() => setLanguages([]))
   }, [])
-
-  const voiceNames = voices.map((v) => v.name)
 
   const handleDelete = async () => {
     if (!selectedVoice) return
@@ -85,7 +42,7 @@ export function ChatterboxVoiceManager({
     try {
       const res = await deleteChatterboxVoice(selectedVoice)
       setUploadStatus(res.message)
-      if (res.success) { onVoiceChange(''); loadVoices() }
+      if (res.success) { onVoiceChange(''); onVoicesChanged() }
     } catch (err) {
       setUploadStatus(err instanceof Error ? err.message : 'Delete failed')
     } finally {
@@ -100,7 +57,7 @@ export function ChatterboxVoiceManager({
     try {
       const res = await uploadChatterboxVoice(recordedBlob, recordName.trim(), recordLang || undefined)
       setUploadStatus(res.message)
-      if (res.success) { setRecordedBlob(null); setRecordName(''); setRecordLang(''); loadVoices() }
+      if (res.success) { setRecordedBlob(null); setRecordName(''); setRecordLang(''); onVoicesChanged() }
     } catch (err) {
       setUploadStatus(err instanceof Error ? err.message : 'Upload failed')
     } finally {
@@ -118,7 +75,7 @@ export function ChatterboxVoiceManager({
       if (res.success) {
         setUploadName(''); setUploadFile(null); setUploadLang('')
         if (fileInputRef.current) fileInputRef.current.value = ''
-        loadVoices()
+        onVoicesChanged()
       }
     } catch (err) {
       setUploadStatus(err instanceof Error ? err.message : 'Upload failed')
@@ -129,24 +86,12 @@ export function ChatterboxVoiceManager({
 
   return (
     <div className="space-y-3">
-      {/* Voice Library */}
-      <SearchSelect
-        label={loadingVoices ? 'Voice (loading...)' : 'Voice'}
-        value={selectedVoice}
-        options={voiceNames}
-        placeholder="Select voice..."
-        onChange={onVoiceChange}
-      />
+      {/* Delete selected voice */}
       {selectedVoice && (
         <Button onClick={handleDelete} disabled={deleting}>
           {deleting ? 'Deleting...' : `Delete "${selectedVoice}"`}
         </Button>
       )}
-      <div className="space-y-2 mt-2">
-        <RangeSlider label="exaggeration" value={exaggeration} min={0.25} max={2.0} step={0.05} onChange={onExaggerationChange} />
-        <RangeSlider label="cfg_weight" value={cfgWeight} min={0.0} max={1.0} step={0.05} onChange={onCfgWeightChange} />
-        <RangeSlider label="temperature" value={temperature} min={0.05} max={5.0} step={0.05} onChange={onTemperatureChange} />
-      </div>
 
       <Divider spacing="sm" />
 
