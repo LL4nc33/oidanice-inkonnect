@@ -1,11 +1,13 @@
 import logging
 import re
+from contextlib import asynccontextmanager
 from pathlib import Path
+from collections.abc import AsyncIterator
 
 import httpx
 from fastapi import APIRouter, Form, Query, UploadFile
 
-from backend.dependencies import get_settings
+from backend.dependencies import get_settings, get_tts
 from backend.models import (
     ChatterboxUploadResponse,
     ChatterboxVoice,
@@ -18,6 +20,7 @@ from backend.models import (
     PiperDownloadResponse,
     PiperVoicesResponse,
 )
+from backend.providers.tts.chatterbox_remote import ChatterboxRemoteProvider
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +28,24 @@ router = APIRouter(prefix="/api", tags=["config"])
 
 PIPER_VOICES_DIR = Path("/app/piper-voices")
 HF_BASE = "https://huggingface.co/rhasspy/piper-voices/resolve/main"
+
+
+@asynccontextmanager
+async def _chatterbox_provider(url: str | None = None) -> AsyncIterator[ChatterboxRemoteProvider]:
+    """Yield a ChatterboxRemoteProvider, reusing the singleton when possible."""
+    s = get_settings()
+    effective_url = url or s.chatterbox_url
+
+    singleton = get_tts()
+    if isinstance(singleton, ChatterboxRemoteProvider) and effective_url == s.chatterbox_url:
+        yield singleton
+        return
+
+    provider = ChatterboxRemoteProvider(base_url=effective_url, voice=s.chatterbox_voice)
+    try:
+        yield provider
+    finally:
+        await provider.cleanup()
 
 
 @router.get("/config", response_model=ConfigResponse)
@@ -107,23 +128,14 @@ async def download_piper_voice(body: PiperDownloadRequest) -> PiperDownloadRespo
 async def get_chatterbox_voices(
     url: str | None = Query(None),
 ) -> ChatterboxVoicesResponse:
-    s = get_settings()
-    chatterbox_url = url or s.chatterbox_url
-    from backend.providers.tts.chatterbox_remote import ChatterboxRemoteProvider
-
-    provider = ChatterboxRemoteProvider(
-        base_url=chatterbox_url,
-        voice=s.chatterbox_voice,
-    )
     try:
-        raw_voices = await provider.get_voices()
-        voices = [ChatterboxVoice(name=v["name"], language=v.get("language")) for v in raw_voices]
-        return ChatterboxVoicesResponse(voices=voices)
+        async with _chatterbox_provider(url) as provider:
+            raw_voices = await provider.get_voices()
+            voices = [ChatterboxVoice(name=v["name"], language=v.get("language")) for v in raw_voices]
+            return ChatterboxVoicesResponse(voices=voices)
     except Exception:
-        logger.warning("Could not fetch Chatterbox voices from %s", chatterbox_url)
+        logger.warning("Could not fetch Chatterbox voices")
         return ChatterboxVoicesResponse(voices=[])
-    finally:
-        await provider.cleanup()
 
 
 @router.post("/chatterbox/voices", response_model=ChatterboxUploadResponse)
@@ -133,10 +145,6 @@ async def upload_chatterbox_voice(
     language: str | None = Form(None),
     url: str | None = Query(None),
 ) -> ChatterboxUploadResponse:
-    s = get_settings()
-    chatterbox_url = url or s.chatterbox_url
-    from backend.providers.tts.chatterbox_remote import ChatterboxRemoteProvider
-
     if not re.match(r'^[\w\-]+$', name):
         return ChatterboxUploadResponse(success=False, name=name, message="Invalid voice name")
 
@@ -149,17 +157,14 @@ async def upload_chatterbox_voice(
             message=f"File too large ({len(audio_data)} bytes, max {max_size})",
         )
 
-    provider = ChatterboxRemoteProvider(
-        base_url=chatterbox_url,
-        voice=s.chatterbox_voice,
-    )
     try:
-        result = await provider.upload_voice(name, audio_data, language)
-        return ChatterboxUploadResponse(
-            success=bool(result.get("success", True)),
-            name=name,
-            message=str(result.get("message", "Voice uploaded successfully")),
-        )
+        async with _chatterbox_provider(url) as provider:
+            result = await provider.upload_voice(name, audio_data, language)
+            return ChatterboxUploadResponse(
+                success=bool(result.get("success", True)),
+                name=name,
+                message=str(result.get("message", "Voice uploaded successfully")),
+            )
     except httpx.HTTPStatusError as exc:
         return ChatterboxUploadResponse(
             success=False,
@@ -172,8 +177,6 @@ async def upload_chatterbox_voice(
             name=name,
             message=f"Upload failed: {exc}",
         )
-    finally:
-        await provider.cleanup()
 
 
 @router.delete("/chatterbox/voices/{name}", response_model=ChatterboxUploadResponse)
@@ -183,21 +186,14 @@ async def delete_chatterbox_voice(
 ) -> ChatterboxUploadResponse:
     if not re.match(r'^[\w\-]+$', name):
         return ChatterboxUploadResponse(success=False, name=name, message="Invalid voice name")
-    s = get_settings()
-    chatterbox_url = url or s.chatterbox_url
-    from backend.providers.tts.chatterbox_remote import ChatterboxRemoteProvider
-
-    provider = ChatterboxRemoteProvider(
-        base_url=chatterbox_url,
-        voice=s.chatterbox_voice,
-    )
     try:
-        result = await provider.delete_voice(name)
-        return ChatterboxUploadResponse(
-            success=bool(result.get("success", True)),
-            name=name,
-            message=str(result.get("message", "Voice deleted successfully")),
-        )
+        async with _chatterbox_provider(url) as provider:
+            result = await provider.delete_voice(name)
+            return ChatterboxUploadResponse(
+                success=bool(result.get("success", True)),
+                name=name,
+                message=str(result.get("message", "Voice deleted successfully")),
+            )
     except httpx.HTTPStatusError as exc:
         return ChatterboxUploadResponse(
             success=False,
@@ -210,8 +206,6 @@ async def delete_chatterbox_voice(
             name=name,
             message=f"Delete failed: {exc}",
         )
-    finally:
-        await provider.cleanup()
 
 
 @router.get("/ollama/models", response_model=ModelsResponse)
@@ -254,9 +248,12 @@ async def get_openai_models(
 
 
 @router.post("/gpu/warmup")
-async def warmup_gpu(service: str = Query("ollama")) -> dict:
+async def warmup_gpu(
+    service: str = Query("ollama"),
+    url: str | None = Query(None),
+) -> dict:
     s = get_settings()
-    ollama_url = s.ollama_url.rstrip("/")
+    ollama_url = (url or s.ollama_url).rstrip("/")
     model = s.ollama_model
 
     try:
@@ -304,15 +301,8 @@ async def get_gpu_status() -> GpuStatusResponse:
 
     # Chatterbox: GET /memory
     try:
-        from backend.providers.tts.chatterbox_remote import ChatterboxRemoteProvider
-
-        provider = ChatterboxRemoteProvider(
-            base_url=s.chatterbox_url, voice=s.chatterbox_voice,
-        )
-        try:
+        async with _chatterbox_provider() as provider:
             chatterbox_info = await provider.get_memory()
-        finally:
-            await provider.cleanup()
     except Exception:
         chatterbox_info = {"error": "unreachable"}
 
@@ -323,18 +313,10 @@ async def get_gpu_status() -> GpuStatusResponse:
 async def get_chatterbox_languages(
     url: str | None = Query(None),
 ) -> LanguagesResponse:
-    s = get_settings()
-    chatterbox_url = url or s.chatterbox_url
-    from backend.providers.tts.chatterbox_remote import ChatterboxRemoteProvider
-
-    provider = ChatterboxRemoteProvider(
-        base_url=chatterbox_url, voice=s.chatterbox_voice,
-    )
     try:
-        languages = await provider.get_languages()
-        return LanguagesResponse(languages=languages)
+        async with _chatterbox_provider(url) as provider:
+            languages = await provider.get_languages()
+            return LanguagesResponse(languages=languages)
     except Exception:
-        logger.warning("Could not fetch Chatterbox languages from %s", s.chatterbox_url)
+        logger.warning("Could not fetch Chatterbox languages")
         return LanguagesResponse(languages=[])
-    finally:
-        await provider.cleanup()

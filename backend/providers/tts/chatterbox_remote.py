@@ -18,12 +18,14 @@ class ChatterboxRemoteProvider(TTSProvider):
         text: str,
         lang: str,
         voice: str | None = None,
+        *,
         exaggeration: float | None = None,
         cfg_weight: float | None = None,
         temperature: float | None = None,
+        **kwargs: object,
     ) -> bytes:
         voice_name = voice or self._voice
-        payload: dict[str, object] = {"input": text, "voice": voice_name}
+        payload: dict[str, object] = {"input": text, "voice": voice_name, "language_id": lang}
         if exaggeration is not None:
             payload["exaggeration"] = exaggeration
         if cfg_weight is not None:

@@ -18,22 +18,19 @@ export function Footer() {
   }, [])
 
   return (
-    <>
-      <span>
-        powered by{' '}
-        <span
-          style={{
-            opacity: visible ? 1 : 0,
-            transition: 'opacity 0.4s ease',
-            display: 'inline-block',
-            minWidth: '8ch',
-          }}
-        >
-          {STACK[index]}
-        </span>
+    <span style={{ whiteSpace: 'nowrap' }}>
+      <span
+        style={{
+          opacity: visible ? 1 : 0,
+          transition: 'opacity 0.4s ease',
+          display: 'inline-block',
+          minWidth: '7ch',
+          textAlign: 'center',
+        }}
+      >
+        {STACK[index]}
       </span>
-      <span style={{ opacity: 0.4 }}>·</span>
-      <span>built by</span>
+      <span style={{ opacity: 0.4 }}> · </span>
       <a
         href="https://github.com/LL4nc33"
         target="_blank"
@@ -49,8 +46,8 @@ export function Footer() {
       >
         OidaNice
       </a>
-      <span style={{ opacity: 0.4 }}>·</span>
+      <span style={{ opacity: 0.4 }}> · </span>
       <span>v{__APP_VERSION__}</span>
-    </>
+    </span>
   )
 }

@@ -12,7 +12,7 @@ class STTProvider(ABC):
 
 class TTSProvider(ABC):
     @abstractmethod
-    async def synthesize(self, text: str, lang: str, voice: str | None = None) -> bytes:
+    async def synthesize(self, text: str, lang: str, voice: str | None = None, **kwargs: object) -> bytes:
         """Synthesize text to audio. Returns WAV bytes."""
 
     async def cleanup(self) -> None:

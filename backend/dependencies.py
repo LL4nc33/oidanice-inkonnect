@@ -9,7 +9,12 @@ _tts: TTSProvider | None = None
 _translate: TranslateProvider | None = None
 
 
-def init_providers(settings: Settings, stt: STTProvider, tts: TTSProvider, translate: TranslateProvider) -> None:
+def init_providers(
+    settings: Settings,
+    stt: STTProvider,
+    tts: TTSProvider | None,
+    translate: TranslateProvider,
+) -> None:
     global _settings, _stt, _tts, _translate
     _settings = settings
     _stt = stt
@@ -27,8 +32,7 @@ def get_stt() -> STTProvider:
     return _stt
 
 
-def get_tts() -> TTSProvider:
-    assert _tts is not None, "TTS provider not initialized"
+def get_tts() -> TTSProvider | None:
     return _tts
 
 
