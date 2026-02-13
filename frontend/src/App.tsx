@@ -42,6 +42,9 @@ export function App() {
           openaiUrl={settings.openaiUrl}
           openaiKey={settings.openaiKey}
           openaiModel={settings.openaiModel}
+          chatterboxExaggeration={settings.chatterboxExaggeration}
+          chatterboxCfgWeight={settings.chatterboxCfgWeight}
+          chatterboxTemperature={settings.chatterboxTemperature}
           onSourceChange={(lang) => update({ sourceLang: lang })}
           onTargetChange={(lang) => update({ targetLang: lang })}
         />
@@ -67,6 +70,12 @@ export function App() {
           onOpenaiKeyChange={(key) => update({ openaiKey: key })}
           openaiModel={settings.openaiModel}
           onOpenaiModelChange={(model) => update({ openaiModel: model })}
+          chatterboxExaggeration={settings.chatterboxExaggeration}
+          onChatterboxExaggerationChange={(v) => update({ chatterboxExaggeration: v })}
+          chatterboxCfgWeight={settings.chatterboxCfgWeight}
+          onChatterboxCfgWeightChange={(v) => update({ chatterboxCfgWeight: v })}
+          chatterboxTemperature={settings.chatterboxTemperature}
+          onChatterboxTemperatureChange={(v) => update({ chatterboxTemperature: v })}
         />
       )}
     </Layout>

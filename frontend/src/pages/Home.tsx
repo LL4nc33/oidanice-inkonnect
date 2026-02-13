@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Progress } from '@oidanice/ink-ui'
-import { pipeline, ProviderOptions } from '../api/inkonnect'
+import { pipeline, ProviderOptions, warmupGpu, SynthesisParams } from '../api/inkonnect'
 import { useAudioRecorder } from '../hooks/useAudioRecorder'
 import { RecordButton } from '../components/RecordButton'
 import { TranscriptDisplay } from '../components/TranscriptDisplay'
@@ -19,6 +19,9 @@ interface HomeProps {
   openaiUrl: string
   openaiKey: string
   openaiModel: string
+  chatterboxExaggeration: number
+  chatterboxCfgWeight: number
+  chatterboxTemperature: number
   onSourceChange: (lang: string) => void
   onTargetChange: (lang: string) => void
 }
@@ -31,7 +34,7 @@ interface Result {
   durationMs: number
 }
 
-export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoice, chatterboxVoice, ollamaModel, translateProvider, openaiUrl, openaiKey, openaiModel, onSourceChange, onTargetChange }: HomeProps) {
+export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoice, chatterboxVoice, ollamaModel, translateProvider, openaiUrl, openaiKey, openaiModel, chatterboxExaggeration, chatterboxCfgWeight, chatterboxTemperature, onSourceChange, onTargetChange }: HomeProps) {
   const recorder = useAudioRecorder()
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<Result | null>(null)
@@ -52,6 +55,10 @@ export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoi
             : undefined
         const model = translateProvider === 'openai' ? openaiModel || undefined : ollamaModel || undefined
         const activeTtsProvider = ttsProvider === 'chatterbox' ? 'chatterbox' : undefined
+        const synthesisParams: SynthesisParams | undefined =
+          ttsProvider === 'chatterbox'
+            ? { exaggeration: chatterboxExaggeration, cfgWeight: chatterboxCfgWeight, temperature: chatterboxTemperature }
+            : undefined
         const res = await pipeline(
           recorder.blob!,
           sourceLang || undefined,
@@ -61,6 +68,7 @@ export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoi
           model,
           providerOpts,
           activeTtsProvider,
+          synthesisParams,
         )
         setResult({
           originalText: res.original_text,
@@ -76,7 +84,7 @@ export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoi
       }
     }
     process()
-  }, [recorder.blob, sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoice, chatterboxVoice, ollamaModel, translateProvider, openaiUrl, openaiKey, openaiModel])
+  }, [recorder.blob, sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoice, chatterboxVoice, ollamaModel, translateProvider, openaiUrl, openaiKey, openaiModel, chatterboxExaggeration, chatterboxCfgWeight, chatterboxTemperature])
 
   return (
     <div className="space-y-4">
@@ -94,6 +102,9 @@ export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoi
           setResult(null)
           setError(null)
           recorder.start()
+          if (translateProvider === 'local') {
+            warmupGpu('ollama').catch(() => {})
+          }
         }}
         onStop={() => recorder.stop()}
       />

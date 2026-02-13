@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Card, Select, Input, Divider, Button } from '@oidanice/ink-ui'
-import { getConfig, getOllamaModels, getOpenAIModels, getPiperVoices, downloadPiperVoice } from '../api/inkonnect'
+import { getConfig, getOllamaModels, getOpenAIModels, getPiperVoices, downloadPiperVoice, getGpuStatus, GpuStatus } from '../api/inkonnect'
 import { SearchSelect } from '../components/SearchSelect'
 import { ChatterboxVoiceManager } from '../components/ChatterboxVoiceManager'
 
@@ -25,6 +25,12 @@ interface SettingsProps {
   onOpenaiKeyChange: (key: string) => void
   openaiModel: string
   onOpenaiModelChange: (model: string) => void
+  chatterboxExaggeration: number
+  onChatterboxExaggerationChange: (value: number) => void
+  chatterboxCfgWeight: number
+  onChatterboxCfgWeightChange: (value: number) => void
+  chatterboxTemperature: number
+  onChatterboxTemperatureChange: (value: number) => void
 }
 
 interface BackendConfig {
@@ -50,8 +56,12 @@ export function Settings({
   openaiUrl, onOpenaiUrlChange,
   openaiKey, onOpenaiKeyChange,
   openaiModel, onOpenaiModelChange,
+  chatterboxExaggeration, onChatterboxExaggerationChange,
+  chatterboxCfgWeight, onChatterboxCfgWeightChange,
+  chatterboxTemperature, onChatterboxTemperatureChange,
 }: SettingsProps) {
   const [config, setConfig] = useState<BackendConfig | null>(null)
+  const [gpuStatus, setGpuStatus] = useState<GpuStatus | null>(null)
   const [ollamaModels, setOllamaModels] = useState<string[]>([])
   const [openaiModels, setOpenaiModels] = useState<string[]>([])
   const [loadingOllamaModels, setLoadingOllamaModels] = useState(false)
@@ -65,6 +75,7 @@ export function Settings({
 
   useEffect(() => {
     getConfig().then(setConfig).catch(() => {})
+    getGpuStatus().then(setGpuStatus).catch(() => {})
   }, [])
 
   const loadVoices = () => {
@@ -185,6 +196,12 @@ export function Settings({
                 <ChatterboxVoiceManager
                   selectedVoice={chatterboxVoice}
                   onVoiceChange={onChatterboxVoiceChange}
+                  exaggeration={chatterboxExaggeration}
+                  onExaggerationChange={onChatterboxExaggerationChange}
+                  cfgWeight={chatterboxCfgWeight}
+                  onCfgWeightChange={onChatterboxCfgWeightChange}
+                  temperature={chatterboxTemperature}
+                  onTemperatureChange={onChatterboxTemperatureChange}
                 />
               )}
             </>
@@ -281,6 +298,19 @@ export function Settings({
               <dt>translate</dt>
               <dd>{config.translate_provider} ({config.ollama_model})</dd>
             </div>
+            {gpuStatus && (
+              <>
+                <Divider spacing="sm" />
+                <div className="flex justify-between">
+                  <dt>gpu</dt>
+                  <dd className="text-right">
+                    {gpuStatus.ollama.error ? 'ollama: offline' : 'ollama: online'}
+                    {' / '}
+                    {gpuStatus.chatterbox.error ? 'chatterbox: offline' : 'chatterbox: online'}
+                  </dd>
+                </div>
+              </>
+            )}
           </dl>
         </Card>
       )}

@@ -13,6 +13,9 @@ interface AppSettings {
   openaiUrl: string
   openaiKey: string
   openaiModel: string
+  chatterboxExaggeration: number
+  chatterboxCfgWeight: number
+  chatterboxTemperature: number
 }
 
 const STORAGE_KEY = 'inkonnect-settings'
@@ -30,6 +33,9 @@ const DEFAULTS: AppSettings = {
   openaiUrl: '',
   openaiKey: '',
   openaiModel: '',
+  chatterboxExaggeration: 0.5,
+  chatterboxCfgWeight: 0.5,
+  chatterboxTemperature: 0.8,
 }
 
 function load(): AppSettings {
