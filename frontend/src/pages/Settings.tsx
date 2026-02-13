@@ -105,8 +105,8 @@ export function Settings({
 
   useEffect(() => {
     getConfig().then(setConfig).catch(() => {})
-    getGpuStatus().then(setGpuStatus).catch(() => {})
-  }, [])
+    getGpuStatus(ollamaUrl || undefined, chatterboxUrl || undefined).then(setGpuStatus).catch(() => {})
+  }, [ollamaUrl, chatterboxUrl])
 
   const loadVoices = () => {
     setLoadingVoices(true)

@@ -285,15 +285,19 @@ async def warmup_gpu(
 
 
 @router.get("/gpu/status", response_model=GpuStatusResponse)
-async def get_gpu_status() -> GpuStatusResponse:
+async def get_gpu_status(
+    ollama_url: str | None = Query(None),
+    chatterbox_url: str | None = Query(None),
+) -> GpuStatusResponse:
     s = get_settings()
     ollama_info: dict = {}
     chatterbox_info: dict = {}
 
     # Ollama: GET /api/ps
+    effective_ollama = ollama_url or s.ollama_url
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
-            resp = await client.get(f"{s.ollama_url.rstrip('/')}/api/ps")
+            resp = await client.get(f"{effective_ollama.rstrip('/')}/api/ps")
             resp.raise_for_status()
             ollama_info = resp.json()
     except Exception:
@@ -301,7 +305,7 @@ async def get_gpu_status() -> GpuStatusResponse:
 
     # Chatterbox: GET /memory
     try:
-        async with _chatterbox_provider() as provider:
+        async with _chatterbox_provider(chatterbox_url) as provider:
             chatterbox_info = await provider.get_memory()
     except Exception:
         chatterbox_info = {"error": "unreachable"}

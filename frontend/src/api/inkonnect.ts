@@ -200,8 +200,12 @@ export interface GpuStatus {
   chatterbox: Record<string, unknown>
 }
 
-export async function getGpuStatus(): Promise<GpuStatus> {
-  return request('/gpu/status')
+export async function getGpuStatus(ollamaUrl?: string, chatterboxUrl?: string): Promise<GpuStatus> {
+  const params = new URLSearchParams()
+  if (ollamaUrl) params.set('ollama_url', ollamaUrl)
+  if (chatterboxUrl) params.set('chatterbox_url', chatterboxUrl)
+  const qs = params.toString()
+  return request(`/gpu/status${qs ? `?${qs}` : ''}`)
 }
 
 export async function warmupGpu(service: string = 'ollama'): Promise<void> {
