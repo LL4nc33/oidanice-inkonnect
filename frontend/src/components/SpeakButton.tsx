@@ -1,12 +1,14 @@
-import { useCallback, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { Button } from '@oidanice/ink-ui'
 
 interface SpeakButtonProps {
   audioBase64: string | null
+  autoPlay?: boolean
 }
 
-export function SpeakButton({ audioBase64 }: SpeakButtonProps) {
+export function SpeakButton({ audioBase64, autoPlay }: SpeakButtonProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const lastPlayed = useRef<string | null>(null)
 
   const play = useCallback(() => {
     if (!audioBase64) return
@@ -17,6 +19,13 @@ export function SpeakButton({ audioBase64 }: SpeakButtonProps) {
     audioRef.current = audio
     audio.play()
   }, [audioBase64])
+
+  useEffect(() => {
+    if (autoPlay && audioBase64 && audioBase64 !== lastPlayed.current) {
+      lastPlayed.current = audioBase64
+      play()
+    }
+  }, [autoPlay, audioBase64, play])
 
   if (!audioBase64) return null
 

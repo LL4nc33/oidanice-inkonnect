@@ -33,6 +33,8 @@ interface SettingsProps {
   onChatterboxCfgWeightChange: (value: number) => void
   chatterboxTemperature: number
   onChatterboxTemperatureChange: (value: number) => void
+  autoPlay: boolean
+  onAutoPlayChange: (enabled: boolean) => void
 }
 
 function RangeSlider({ label, value, min, max, step, onChange }: {
@@ -83,6 +85,7 @@ export function Settings({
   chatterboxExaggeration, onChatterboxExaggerationChange,
   chatterboxCfgWeight, onChatterboxCfgWeightChange,
   chatterboxTemperature, onChatterboxTemperatureChange,
+  autoPlay, onAutoPlayChange,
 }: SettingsProps) {
   const [config, setConfig] = useState<BackendConfig | null>(null)
   const [gpuStatus, setGpuStatus] = useState<GpuStatus | null>(null)
@@ -179,6 +182,15 @@ export function Settings({
             label="TTS Output"
             value={ttsEnabled ? 'on' : 'off'}
             onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onTtsChange(e.target.value === 'on')}
+          >
+            <option value="on">Enabled</option>
+            <option value="off">Disabled</option>
+          </Select>
+
+          <Select
+            label="Auto-Play"
+            value={autoPlay ? 'on' : 'off'}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onAutoPlayChange(e.target.value === 'on')}
           >
             <option value="on">Enabled</option>
             <option value="off">Disabled</option>

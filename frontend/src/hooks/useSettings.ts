@@ -17,6 +17,7 @@ interface AppSettings {
   chatterboxExaggeration: number
   chatterboxCfgWeight: number
   chatterboxTemperature: number
+  autoPlay: boolean
 }
 
 const STORAGE_KEY = 'inkonnect-settings'
@@ -38,6 +39,7 @@ const DEFAULTS: AppSettings = {
   chatterboxExaggeration: 0.5,
   chatterboxCfgWeight: 0.5,
   chatterboxTemperature: 0.8,
+  autoPlay: true,
 }
 
 function load(): AppSettings {

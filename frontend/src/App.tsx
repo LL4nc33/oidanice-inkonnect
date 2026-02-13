@@ -47,6 +47,7 @@ export function App() {
           chatterboxExaggeration={settings.chatterboxExaggeration}
           chatterboxCfgWeight={settings.chatterboxCfgWeight}
           chatterboxTemperature={settings.chatterboxTemperature}
+          autoPlay={settings.autoPlay}
           onSourceChange={(lang) => update({ sourceLang: lang })}
           onTargetChange={(lang) => update({ targetLang: lang })}
         />
@@ -80,6 +81,8 @@ export function App() {
           onChatterboxCfgWeightChange={(v) => update({ chatterboxCfgWeight: v })}
           chatterboxTemperature={settings.chatterboxTemperature}
           onChatterboxTemperatureChange={(v) => update({ chatterboxTemperature: v })}
+          autoPlay={settings.autoPlay}
+          onAutoPlayChange={(v) => update({ autoPlay: v })}
         />
       )}
     </Layout>

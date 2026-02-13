@@ -24,6 +24,7 @@ interface HomeProps {
   chatterboxExaggeration: number
   chatterboxCfgWeight: number
   chatterboxTemperature: number
+  autoPlay: boolean
   onSourceChange: (lang: string) => void
   onTargetChange: (lang: string) => void
 }
@@ -36,7 +37,7 @@ interface Result {
   durationMs: number
 }
 
-export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoice, chatterboxVoice, chatterboxUrl, ollamaModel, ollamaUrl, translateProvider, openaiUrl, openaiKey, openaiModel, chatterboxExaggeration, chatterboxCfgWeight, chatterboxTemperature, onSourceChange, onTargetChange }: HomeProps) {
+export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoice, chatterboxVoice, chatterboxUrl, ollamaModel, ollamaUrl, translateProvider, openaiUrl, openaiKey, openaiModel, chatterboxExaggeration, chatterboxCfgWeight, chatterboxTemperature, autoPlay, onSourceChange, onTargetChange }: HomeProps) {
   const recorder = useAudioRecorder()
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<Result | null>(null)
@@ -134,7 +135,7 @@ export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoi
         durationMs={result?.durationMs ?? null}
       />
 
-      <SpeakButton audioBase64={result?.audio ?? null} />
+      <SpeakButton audioBase64={result?.audio ?? null} autoPlay={autoPlay} />
     </div>
   )
 }
