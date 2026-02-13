@@ -43,8 +43,11 @@ class ChatterboxRemoteProvider(TTSProvider):
         """Fetch available voices from the Chatterbox API."""
         resp = await self._client.get(f"{self._base_url}/voices", timeout=30.0)
         resp.raise_for_status()
-        data: list[dict[str, str | None]] = resp.json()
-        return data
+        raw = resp.json()
+        # API returns {"voices": [...], "count": N}
+        if isinstance(raw, dict) and "voices" in raw:
+            return raw["voices"]
+        return raw
 
     async def upload_voice(
         self, name: str, audio_data: bytes, language: str | None = None,

@@ -117,7 +117,7 @@ async def get_chatterbox_voices(
     )
     try:
         raw_voices = await provider.get_voices()
-        voices = [ChatterboxVoice(**v) for v in raw_voices]
+        voices = [ChatterboxVoice(name=v["name"], language=v.get("language")) for v in raw_voices]
         return ChatterboxVoicesResponse(voices=voices)
     except Exception:
         logger.warning("Could not fetch Chatterbox voices from %s", chatterbox_url)
