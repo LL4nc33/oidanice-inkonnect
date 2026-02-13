@@ -87,4 +87,4 @@ Open [http://localhost:8000](http://localhost:8000) and start recording.
 
 ---
 
-Built by [OidaNice](https://github.com/LL4nc33) -- powered by faster-whisper -- v0.2.0
+Built by [OidaNice](https://github.com/LL4nc33) -- powered by faster-whisper, piper, chatterbox & ollama -- v0.2.0

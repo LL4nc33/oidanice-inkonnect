@@ -1,7 +1,37 @@
+import { useState, useEffect } from 'react'
+
+const STACK = ['faster-whisper', 'piper tts', 'chatterbox', 'ollama']
+
 export function Footer() {
+  const [index, setIndex] = useState(0)
+  const [visible, setVisible] = useState(true)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVisible(false)
+      setTimeout(() => {
+        setIndex((i) => (i + 1) % STACK.length)
+        setVisible(true)
+      }, 400)
+    }, 3000)
+    return () => clearInterval(interval)
+  }, [])
+
   return (
     <>
-      <span>powered by ollama</span>
+      <span>
+        powered by{' '}
+        <span
+          style={{
+            opacity: visible ? 1 : 0,
+            transition: 'opacity 0.4s ease',
+            display: 'inline-block',
+            minWidth: '8ch',
+          }}
+        >
+          {STACK[index]}
+        </span>
+      </span>
       <span style={{ opacity: 0.4 }}>·</span>
       <span>built by</span>
       <a
