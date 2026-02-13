@@ -1,7 +1,7 @@
 import base64
 import time
 
-from fastapi import APIRouter, File, Query, UploadFile
+from fastapi import APIRouter, File, HTTPException, Query, UploadFile
 
 from backend.dependencies import get_stt
 from backend.models import PipelineResponse
@@ -33,6 +33,9 @@ async def full_pipeline(
     # 1. STT
     audio = await file.read()
     text, detected_lang = await get_stt().transcribe(audio, source_lang)
+
+    if not text.strip():
+        raise HTTPException(status_code=400, detail="No speech detected")
 
     # 2. Translate
     translator, ad_hoc = resolve_translate(provider, api_url, api_key, model, ollama_url)

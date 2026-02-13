@@ -175,6 +175,9 @@ async def pipeline(
     # 1. STT
     text, detected_lang = await get_stt().transcribe(audio)
 
+    if not text.strip():
+        raise HTTPException(status_code=400, detail="No speech detected")
+
     # 2. Translate
     translator, t_ad_hoc = resolve_translate(None, None, None, model)
     try:
