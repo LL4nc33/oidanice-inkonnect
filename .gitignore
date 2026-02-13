@@ -11,3 +11,4 @@ models/
 .serena/
 .playwright-mcp/
 workflow/
+benchmarks/

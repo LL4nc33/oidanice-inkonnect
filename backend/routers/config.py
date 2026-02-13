@@ -208,6 +208,25 @@ async def delete_chatterbox_voice(
         )
 
 
+@router.get("/elevenlabs/voices")
+async def get_elevenlabs_voices(
+    key: str = Query(""),
+) -> dict:
+    if not key:
+        return {"voices": []}
+    from backend.providers.tts.elevenlabs_remote import ElevenLabsRemoteProvider
+
+    provider = ElevenLabsRemoteProvider(api_key=key)
+    try:
+        raw = await provider.get_voices()
+        return {"voices": [{"id": v["voice_id"], "name": v["name"]} for v in raw]}
+    except Exception:
+        logger.warning("Could not fetch ElevenLabs voices")
+        return {"voices": []}
+    finally:
+        await provider.cleanup()
+
+
 @router.get("/ollama/models", response_model=ModelsResponse)
 async def get_ollama_models(
     url: str | None = Query(None),

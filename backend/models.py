@@ -20,10 +20,16 @@ class TTSRequest(BaseModel):
     exaggeration: float | None = None
     cfg_weight: float | None = None
     temperature: float | None = None
+    elevenlabs_key: str | None = None
+    elevenlabs_voice_id: str | None = None
+    elevenlabs_model: str | None = None
+    elevenlabs_stability: float | None = None
+    elevenlabs_similarity: float | None = None
 
 
 class TTSResponse(BaseModel):
-    audio: str  # base64-encoded WAV
+    audio: str  # base64-encoded audio
+    audio_format: str = "wav"  # wav or mp3
     duration_ms: int
 
 
@@ -53,8 +59,12 @@ class PipelineResponse(BaseModel):
     original_text: str
     detected_language: str
     translated_text: str
-    audio: str | None = None  # base64 WAV if tts=True
+    audio: str | None = None  # base64 audio if tts=True
+    audio_format: str = "wav"  # wav or mp3
     duration_ms: int
+    stt_ms: int | None = None
+    translate_ms: int | None = None
+    tts_ms: int | None = None
 
 
 class ConfigResponse(BaseModel):

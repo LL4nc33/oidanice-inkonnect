@@ -20,6 +20,13 @@ interface AppSettings {
   autoPlay: boolean
   ollamaKeepAlive: string
   ollamaContextLength: string
+  deepLKey: string
+  deepLFree: boolean
+  elevenlabsKey: string
+  elevenlabsModel: string
+  elevenlabsVoiceId: string
+  elevenlabsStability: number
+  elevenlabsSimilarity: number
 }
 
 const STORAGE_KEY = 'inkonnect-settings'
@@ -44,6 +51,13 @@ const DEFAULTS: AppSettings = {
   autoPlay: true,
   ollamaKeepAlive: '3m',
   ollamaContextLength: '',
+  deepLKey: '',
+  deepLFree: true,
+  elevenlabsKey: '',
+  elevenlabsModel: 'eleven_multilingual_v2',
+  elevenlabsVoiceId: '',
+  elevenlabsStability: 0.5,
+  elevenlabsSimilarity: 0.75,
 }
 
 function load(): AppSettings {

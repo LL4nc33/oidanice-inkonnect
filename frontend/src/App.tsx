@@ -50,6 +50,13 @@ export function App() {
           autoPlay={settings.autoPlay}
           ollamaKeepAlive={settings.ollamaKeepAlive}
           ollamaContextLength={settings.ollamaContextLength}
+          deepLKey={settings.deepLKey}
+          deepLFree={settings.deepLFree}
+          elevenlabsKey={settings.elevenlabsKey}
+          elevenlabsModel={settings.elevenlabsModel}
+          elevenlabsVoiceId={settings.elevenlabsVoiceId}
+          elevenlabsStability={settings.elevenlabsStability}
+          elevenlabsSimilarity={settings.elevenlabsSimilarity}
           onSourceChange={(lang) => update({ sourceLang: lang })}
           onTargetChange={(lang) => update({ targetLang: lang })}
         />
@@ -89,6 +96,20 @@ export function App() {
           onOllamaKeepAliveChange={(v) => update({ ollamaKeepAlive: v })}
           ollamaContextLength={settings.ollamaContextLength}
           onOllamaContextLengthChange={(v) => update({ ollamaContextLength: v })}
+          deepLKey={settings.deepLKey}
+          onDeepLKeyChange={(v) => update({ deepLKey: v })}
+          deepLFree={settings.deepLFree}
+          onDeepLFreeChange={(v) => update({ deepLFree: v })}
+          elevenlabsKey={settings.elevenlabsKey}
+          onElevenlabsKeyChange={(v) => update({ elevenlabsKey: v })}
+          elevenlabsModel={settings.elevenlabsModel}
+          onElevenlabsModelChange={(v) => update({ elevenlabsModel: v })}
+          elevenlabsVoiceId={settings.elevenlabsVoiceId}
+          onElevenlabsVoiceIdChange={(v) => update({ elevenlabsVoiceId: v })}
+          elevenlabsStability={settings.elevenlabsStability}
+          onElevenlabsStabilityChange={(v) => update({ elevenlabsStability: v })}
+          elevenlabsSimilarity={settings.elevenlabsSimilarity}
+          onElevenlabsSimilarityChange={(v) => update({ elevenlabsSimilarity: v })}
         />
       )}
     </Layout>

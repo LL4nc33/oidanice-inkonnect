@@ -5,7 +5,7 @@ Barrierefreie Kommunikations-PWA: Sprache ↔ Text ↔ Sprache mit optionaler Ü
 
 ## Tech Stack
 - Frontend: Vite + React 18 + TypeScript + @oidanice/ink-ui
-- Backend: FastAPI + faster-whisper + Piper TTS + Chatterbox TTS + Ollama
+- Backend: FastAPI + faster-whisper + Piper TTS + Chatterbox TTS + ElevenLabs TTS + Ollama + DeepL
 
 ## Struktur
 - `ink-ui/` - @oidanice/ink-ui Design System (lokaler Klon, wird per `npm run build` gebaut)
@@ -17,18 +17,20 @@ Barrierefreie Kommunikations-PWA: Sprache ↔ Text ↔ Sprache mit optionaler Ü
 - `backend/` - FastAPI mit Provider Abstraction Layer
   - `providers/base.py` - ABCs: `STTProvider`, `TTSProvider`, `TranslateProvider`
   - `providers/__init__.py` - Factory-Funktionen: `create_stt()`, `create_tts()`, `create_translate()`
-  - `providers/tts/` - TTS Implementierungen (Piper lokal, Chatterbox remote)
+  - `providers/tts/` - TTS Implementierungen (Piper lokal, Chatterbox remote, ElevenLabs remote)
   - `providers/stt/` - STT Implementierungen (Whisper lokal)
-  - `providers/translate/` - Translation Implementierungen (Ollama, OpenAI-compat)
+  - `providers/translate/` - Translation Implementierungen (Ollama, OpenAI-compat, DeepL remote)
   - `routers/` - API-Endpoints (`tts.py`, `pipeline.py`, `config.py`)
   - `dependencies.py` - Singleton-Provider + Settings
   - `config.py` - Pydantic Settings (env-basiert)
   - `models.py` - Request/Response Models
 - `models/` - Auto-download, gitignored
+- `benchmarks/` - Pipeline timing logs (JSONL per day, gitignored)
+- `tools/` - CLI utilities (`benchmark_report.py`)
 
 ## Architektur-Patterns
 - **Provider Abstraction**: Neue Provider implementieren ABC, Factory in `providers/__init__.py` registrieren
-- **Runtime Provider Switching**: Ad-hoc Provider via `_resolve_tts()` / `_resolve_translate()` in Routern (Frontend sendet Provider-Typ per Request)
+- **Runtime Provider Switching**: Ad-hoc Provider via `resolve_tts()` / `resolve_translate()` in Shared Resolver (Frontend sendet Provider-Typ per Request)
 - **Singleton + Ad-hoc**: Startup-Provider als Default-Singleton, Frontend kann per Request einen anderen Provider anfordern
 - **Settings-Flow**: `useSettings` Hook -> localStorage -> Props durch App -> API-Calls mit Settings als Parameter
 

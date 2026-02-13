@@ -17,7 +17,7 @@ class Settings(BaseSettings):
 
     # Translate
     translate_provider: str = "local"
-    ollama_model: str = "ministral-3:3b"
+    ollama_model: str = "gemma3:4b"
     ollama_url: str = "http://localhost:11434"
 
     # OpenAI-compatible translation
@@ -28,6 +28,11 @@ class Settings(BaseSettings):
     openai_api_key: str | None = None
     elevenlabs_api_key: str | None = None
     deepl_api_key: str | None = None
+    deepl_free: bool = True
+
+    # ElevenLabs
+    elevenlabs_model: str = "eleven_multilingual_v2"
+    elevenlabs_voice_id: str = ""
 
     # Gateway
     gateway_enabled: bool = True

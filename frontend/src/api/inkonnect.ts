@@ -21,7 +21,11 @@ interface PipelineResponse {
   detected_language: string
   translated_text: string
   audio: string | null
+  audio_format: string
   duration_ms: number
+  stt_ms: number | null
+  translate_ms: number | null
+  tts_ms: number | null
 }
 
 interface ConfigResponse {
@@ -94,6 +98,15 @@ export interface ProviderOptions {
   provider?: string
   apiUrl?: string
   apiKey?: string
+  deeplFree?: boolean
+}
+
+export interface ElevenLabsParams {
+  key?: string
+  voiceId?: string
+  model?: string
+  stability?: number
+  similarity?: number
 }
 
 export async function pipeline(
@@ -110,6 +123,7 @@ export async function pipeline(
   ollamaUrl?: string,
   ollamaKeepAlive?: string,
   ollamaContextLength?: number,
+  elevenlabsParams?: ElevenLabsParams,
 ): Promise<PipelineResponse> {
   const form = new FormData()
   form.append('file', audio, 'recording.webm')
@@ -123,6 +137,7 @@ export async function pipeline(
   if (providerOpts?.provider) params.set('provider', providerOpts.provider)
   if (providerOpts?.apiUrl) params.set('api_url', providerOpts.apiUrl)
   if (providerOpts?.apiKey) params.set('api_key', providerOpts.apiKey)
+  if (providerOpts?.deeplFree != null) params.set('deepl_free', String(providerOpts.deeplFree))
   if (synthesisParams?.exaggeration != null) params.set('exaggeration', String(synthesisParams.exaggeration))
   if (synthesisParams?.cfgWeight != null) params.set('cfg_weight', String(synthesisParams.cfgWeight))
   if (synthesisParams?.temperature != null) params.set('temperature', String(synthesisParams.temperature))
@@ -130,6 +145,11 @@ export async function pipeline(
   if (ollamaUrl) params.set('ollama_url', ollamaUrl)
   if (ollamaKeepAlive) params.set('ollama_keep_alive', ollamaKeepAlive)
   if (ollamaContextLength) params.set('ollama_context_length', String(ollamaContextLength))
+  if (elevenlabsParams?.key) params.set('elevenlabs_key', elevenlabsParams.key)
+  if (elevenlabsParams?.voiceId) params.set('elevenlabs_voice_id', elevenlabsParams.voiceId)
+  if (elevenlabsParams?.model) params.set('elevenlabs_model', elevenlabsParams.model)
+  if (elevenlabsParams?.stability != null) params.set('elevenlabs_stability', String(elevenlabsParams.stability))
+  if (elevenlabsParams?.similarity != null) params.set('elevenlabs_similarity', String(elevenlabsParams.similarity))
   return request(`/pipeline?${params}`, { method: 'POST', body: form })
 }
 
@@ -197,6 +217,18 @@ export async function getChatterboxLanguages(url?: string): Promise<string[]> {
   const params = url ? `?url=${encodeURIComponent(url)}` : ''
   const data = await request<{ languages: string[] }>(`/chatterbox/languages${params}`)
   return data.languages
+}
+
+export interface ElevenLabsVoice {
+  id: string
+  name: string
+}
+
+export async function getElevenLabsVoices(key: string): Promise<ElevenLabsVoice[]> {
+  if (!key) return []
+  const params = new URLSearchParams({ key })
+  const data = await request<{ voices: ElevenLabsVoice[] }>(`/elevenlabs/voices?${params}`)
+  return data.voices
 }
 
 export interface GpuStatus {

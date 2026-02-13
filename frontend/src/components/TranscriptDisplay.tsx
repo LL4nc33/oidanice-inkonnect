@@ -6,9 +6,12 @@ interface TranscriptDisplayProps {
   detectedLang: string | null
   translatedText: string | null
   durationMs: number | null
+  sttMs?: number | null
+  translateMs?: number | null
+  ttsMs?: number | null
 }
 
-export function TranscriptDisplay({ originalText, detectedLang, translatedText, durationMs }: TranscriptDisplayProps) {
+export function TranscriptDisplay({ originalText, detectedLang, translatedText, durationMs, sttMs, translateMs, ttsMs }: TranscriptDisplayProps) {
   const originalClip = useClipboard()
   const translatedClip = useClipboard()
 
@@ -24,6 +27,15 @@ export function TranscriptDisplay({ originalText, detectedLang, translatedText, 
           {originalClip.copied ? '[ copied ]' : '[ copy ]'}
         </Button>
       </div>
+      {(sttMs != null || translateMs != null || ttsMs != null) && (
+        <p className="font-mono text-xs" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+          {[
+            sttMs != null && `stt: ${(sttMs / 1000).toFixed(1)}s`,
+            translateMs != null && `translate: ${(translateMs / 1000).toFixed(1)}s`,
+            ttsMs != null && `tts: ${(ttsMs / 1000).toFixed(1)}s`,
+          ].filter(Boolean).join(' · ')}
+        </p>
+      )}
       <p className="font-serif text-lg leading-relaxed">{originalText}</p>
       {translatedText && (
         <>

@@ -23,6 +23,13 @@ def create_tts(settings: Settings) -> TTSProvider:
             base_url=settings.chatterbox_url,
             voice=settings.chatterbox_voice,
         )
+    if settings.tts_provider == "elevenlabs":
+        from backend.providers.tts.elevenlabs_remote import ElevenLabsRemoteProvider
+        return ElevenLabsRemoteProvider(
+            api_key=settings.elevenlabs_api_key or "",
+            model=settings.elevenlabs_model,
+            voice_id=settings.elevenlabs_voice_id,
+        )
     raise ValueError(f"Unknown TTS provider: {settings.tts_provider}")
 
 
@@ -39,5 +46,11 @@ def create_translate(settings: Settings) -> TranslateProvider:
             model=settings.openai_compat_model,
             base_url=settings.openai_compat_url,
             api_key=settings.openai_api_key or "",
+        )
+    if settings.translate_provider == "deepl":
+        from backend.providers.translate.deepl_remote import DeepLRemoteProvider
+        return DeepLRemoteProvider(
+            api_key=settings.deepl_api_key or "",
+            free=settings.deepl_free,
         )
     raise ValueError(f"Unknown translate provider: {settings.translate_provider}")

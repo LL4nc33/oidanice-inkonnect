@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react'
 import { Progress } from '@oidanice/ink-ui'
-import { pipeline, ProviderOptions, warmupGpu, SynthesisParams } from '../api/inkonnect'
+import { pipeline, ProviderOptions, warmupGpu, SynthesisParams, ElevenLabsParams } from '../api/inkonnect'
 import { PipelineRecorder } from '../components/PipelineRecorder'
 import { TranscriptDisplay } from '../components/TranscriptDisplay'
 import { SpeakButton } from '../components/SpeakButton'
@@ -29,6 +29,13 @@ interface HomeProps {
   autoPlay: boolean
   ollamaKeepAlive: string
   ollamaContextLength: string
+  deepLKey: string
+  deepLFree: boolean
+  elevenlabsKey: string
+  elevenlabsModel: string
+  elevenlabsVoiceId: string
+  elevenlabsStability: number
+  elevenlabsSimilarity: number
   onSourceChange: (lang: string) => void
   onTargetChange: (lang: string) => void
 }
@@ -40,10 +47,14 @@ interface Result {
   detectedLang: string
   translatedText: string
   audio: string | null
+  audioFormat: string
   durationMs: number
+  sttMs: number | null
+  translateMs: number | null
+  ttsMs: number | null
 }
 
-export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoice, chatterboxVoice, chatterboxUrl, ollamaModel, ollamaUrl, translateProvider, openaiUrl, openaiKey, openaiModel, chatterboxExaggeration, chatterboxCfgWeight, chatterboxTemperature, autoPlay, ollamaKeepAlive, ollamaContextLength, onSourceChange, onTargetChange }: HomeProps) {
+export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoice, chatterboxVoice, chatterboxUrl, ollamaModel, ollamaUrl, translateProvider, openaiUrl, openaiKey, openaiModel, chatterboxExaggeration, chatterboxCfgWeight, chatterboxTemperature, autoPlay, ollamaKeepAlive, ollamaContextLength, deepLKey, deepLFree, elevenlabsKey, elevenlabsModel, elevenlabsVoiceId, elevenlabsStability, elevenlabsSimilarity, onSourceChange, onTargetChange }: HomeProps) {
   const [phase, setPhase] = useState<Phase>('idle')
   const [result, setResult] = useState<Result | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -67,22 +78,31 @@ export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoi
     setPhase('processing')
     setError(null)
     try {
-      const providerOpts: ProviderOptions | undefined =
-        translateProvider === 'openai' && openaiUrl
-          ? { provider: 'openai', apiUrl: openaiUrl, apiKey: openaiKey || undefined }
-          : undefined
+      let providerOpts: ProviderOptions | undefined
+      if (translateProvider === 'openai' && openaiUrl) {
+        providerOpts = { provider: 'openai', apiUrl: openaiUrl, apiKey: openaiKey || undefined }
+      } else if (translateProvider === 'deepl' && deepLKey) {
+        providerOpts = { provider: 'deepl', apiKey: deepLKey, deeplFree: deepLFree }
+      }
       const model = translateProvider === 'openai' ? openaiModel || undefined : ollamaModel || undefined
-      const activeTtsProvider = ttsProvider === 'chatterbox' ? 'chatterbox' : undefined
+      const activeTtsProvider = ttsProvider === 'chatterbox' ? 'chatterbox'
+        : ttsProvider === 'elevenlabs' ? 'elevenlabs' : undefined
       const synthesisParams: SynthesisParams | undefined =
         ttsProvider === 'chatterbox'
           ? { exaggeration: chatterboxExaggeration, cfgWeight: chatterboxCfgWeight, temperature: chatterboxTemperature }
           : undefined
+      const elParams: ElevenLabsParams | undefined =
+        ttsProvider === 'elevenlabs'
+          ? { key: elevenlabsKey, voiceId: elevenlabsVoiceId, model: elevenlabsModel, stability: elevenlabsStability, similarity: elevenlabsSimilarity }
+          : undefined
+      const voice = ttsProvider === 'chatterbox' ? chatterboxVoice
+        : ttsProvider === 'elevenlabs' ? undefined : piperVoice
       const res = await pipeline(
         blob,
         sourceLang || undefined,
         targetLang,
         ttsEnabled,
-        (ttsProvider === 'chatterbox' ? chatterboxVoice : piperVoice) || undefined,
+        voice || undefined,
         model,
         providerOpts,
         activeTtsProvider,
@@ -91,13 +111,18 @@ export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoi
         translateProvider === 'local' ? ollamaUrl || undefined : undefined,
         translateProvider === 'local' ? ollamaKeepAlive || undefined : undefined,
         translateProvider === 'local' && ollamaContextLength ? parseInt(ollamaContextLength, 10) : undefined,
+        elParams,
       )
       setResult({
         originalText: res.original_text,
         detectedLang: res.detected_language,
         translatedText: res.translated_text,
         audio: res.audio,
+        audioFormat: res.audio_format || 'wav',
         durationMs: res.duration_ms,
+        sttMs: res.stt_ms,
+        translateMs: res.translate_ms,
+        ttsMs: res.tts_ms,
       })
       setPhase('result')
     } catch (err) {
@@ -168,8 +193,11 @@ export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoi
             detectedLang={result.detectedLang}
             translatedText={result.translatedText}
             durationMs={result.durationMs}
+            sttMs={result.sttMs}
+            translateMs={result.translateMs}
+            ttsMs={result.ttsMs}
           />
-          <SpeakButton audioBase64={result.audio} autoPlay={autoPlay} />
+          <SpeakButton audioBase64={result.audio} audioFormat={result.audioFormat} autoPlay={autoPlay} />
           <ResultActions onRetry={handleRetry} onReset={handleReset} />
         </>
       )}

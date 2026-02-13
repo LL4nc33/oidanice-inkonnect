@@ -5,17 +5,20 @@ interface SearchSelectProps {
   label: string
   value: string
   options: string[]
+  labels?: Record<string, string>
   placeholder?: string
   onChange: (value: string) => void
 }
 
-export function SearchSelect({ label, value, options, placeholder, onChange }: SearchSelectProps) {
+export function SearchSelect({ label, value, options, labels, placeholder, onChange }: SearchSelectProps) {
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
 
+  const getLabel = (opt: string) => labels?.[opt] ?? opt
+
   const filtered = query
-    ? options.filter((o) => o.toLowerCase().includes(query.toLowerCase()))
+    ? options.filter((o) => getLabel(o).toLowerCase().includes(query.toLowerCase()))
     : options
 
   useEffect(() => {
@@ -33,7 +36,7 @@ export function SearchSelect({ label, value, options, placeholder, onChange }: S
       <Input
         label={label}
         placeholder={placeholder ?? 'Search...'}
-        value={open ? query : value || ''}
+        value={open ? query : (value ? getLabel(value) : '')}
         onChange={(e) => {
           setQuery(e.target.value)
           if (!open) setOpen(true)
@@ -92,7 +95,7 @@ export function SearchSelect({ label, value, options, placeholder, onChange }: S
                 setOpen(false)
               }}
             >
-              {opt}
+              {getLabel(opt)}
             </li>
           ))}
         </ul>

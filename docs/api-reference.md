@@ -23,7 +23,7 @@ curl -X POST http://localhost:8000/api/stt \
 
 ## POST /api/tts
 
-Synthesize text to audio. Supports Piper (default) and Chatterbox with synthesis parameters.
+Synthesize text to audio. Supports Piper (default), Chatterbox, and ElevenLabs.
 
 ```bash
 curl -X POST http://localhost:8000/api/tts \
@@ -43,10 +43,13 @@ curl -X POST http://localhost:8000/api/tts \
 **Response:**
 ```json
 {
-  "audio": "<base64-encoded WAV>",
+  "audio": "<base64-encoded audio>",
+  "audio_format": "wav",
   "duration_ms": 567
 }
 ```
+
+`audio_format` is `"wav"` for Piper/Chatterbox or `"mp3"` for ElevenLabs.
 
 ## POST /api/translate
 
@@ -83,16 +86,22 @@ curl -X POST "http://localhost:8000/api/pipeline?target_lang=en&tts=true&voice=L
 | `target_lang` | string | `en` | Target language |
 | `tts` | bool | `true` | Enable TTS output |
 | `voice` | string | - | Voice name (Piper or Chatterbox) |
-| `tts_provider` | string | - | `chatterbox` for Chatterbox TTS |
+| `tts_provider` | string | - | TTS provider: `chatterbox`, `elevenlabs` |
 | `chatterbox_url` | string | - | Override Chatterbox API URL |
 | `ollama_url` | string | - | Override Ollama API URL |
 | `model` | string | - | Translation model name |
-| `provider` | string | - | `openai` for OpenAI-compatible translation |
+| `provider` | string | - | Translation provider: `openai`, `deepl` |
 | `api_url` | string | - | OpenAI-compatible API URL |
-| `api_key` | string | - | OpenAI-compatible API key |
+| `api_key` | string | - | API key (OpenAI-compatible or DeepL) |
+| `deepl_free` | bool | `true` | Use DeepL Free tier |
 | `exaggeration` | float | - | Chatterbox exaggeration (0.25-2.0) |
 | `cfg_weight` | float | - | Chatterbox cfg_weight (0.0-1.0) |
 | `temperature` | float | - | Chatterbox temperature (0.05-5.0) |
+| `elevenlabs_key` | string | - | ElevenLabs API key |
+| `elevenlabs_voice_id` | string | - | ElevenLabs voice ID |
+| `elevenlabs_model` | string | - | ElevenLabs model (`eleven_multilingual_v2`, `eleven_turbo_v2_5`) |
+| `elevenlabs_stability` | float | - | ElevenLabs voice stability (0.0-1.0) |
+| `elevenlabs_similarity` | float | - | ElevenLabs similarity boost (0.0-1.0) |
 
 **Response:**
 ```json
@@ -100,10 +109,16 @@ curl -X POST "http://localhost:8000/api/pipeline?target_lang=en&tts=true&voice=L
   "original_text": "Hallo, wie geht es dir?",
   "detected_language": "de",
   "translated_text": "Hello, how are you?",
-  "audio": "<base64-encoded WAV>",
-  "duration_ms": 3456
+  "audio": "<base64-encoded audio>",
+  "audio_format": "wav",
+  "duration_ms": 3456,
+  "stt_ms": 1200,
+  "translate_ms": 890,
+  "tts_ms": 1366
 }
 ```
+
+`audio_format` is `"wav"` for Piper/Chatterbox or `"mp3"` for ElevenLabs. Per-step timing fields (`stt_ms`, `translate_ms`, `tts_ms`) are always included; `tts_ms` is `null` when `tts=false`.
 
 ## GET /api/config
 
@@ -168,6 +183,26 @@ Delete a Chatterbox voice.
 ## GET /api/chatterbox/languages
 
 List supported Chatterbox languages.
+
+## GET /api/elevenlabs/voices
+
+List available ElevenLabs voices for a given API key.
+
+```bash
+curl "http://localhost:8000/api/elevenlabs/voices?key=YOUR_API_KEY"
+```
+
+**Response:**
+```json
+{
+  "voices": [
+    {"id": "21m00Tcm4TlvDq8ikWAM", "name": "Rachel"},
+    {"id": "AZnzlk1XvdvUeBnXmlld", "name": "Domi"}
+  ]
+}
+```
+
+Returns `{"voices": []}` if the key is empty or invalid.
 
 ## GET /api/ollama/models
 

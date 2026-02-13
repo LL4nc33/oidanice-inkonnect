@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Card, Select, Input, Divider, Button } from '@oidanice/ink-ui'
-import { getConfig, getOllamaModels, getOpenAIModels, getPiperVoices, downloadPiperVoice, getGpuStatus, getChatterboxVoices, GpuStatus, ChatterboxVoice } from '../api/inkonnect'
+import { getConfig, getOllamaModels, getOpenAIModels, getPiperVoices, downloadPiperVoice, getGpuStatus, getChatterboxVoices, getElevenLabsVoices, GpuStatus, ChatterboxVoice, ElevenLabsVoice } from '../api/inkonnect'
 import { SearchSelect } from '../components/SearchSelect'
 import { ChatterboxVoiceManager } from '../components/ChatterboxVoiceManager'
 
@@ -39,6 +39,20 @@ interface SettingsProps {
   onOllamaKeepAliveChange: (value: string) => void
   ollamaContextLength: string
   onOllamaContextLengthChange: (value: string) => void
+  deepLKey: string
+  onDeepLKeyChange: (key: string) => void
+  deepLFree: boolean
+  onDeepLFreeChange: (free: boolean) => void
+  elevenlabsKey: string
+  onElevenlabsKeyChange: (key: string) => void
+  elevenlabsModel: string
+  onElevenlabsModelChange: (model: string) => void
+  elevenlabsVoiceId: string
+  onElevenlabsVoiceIdChange: (id: string) => void
+  elevenlabsStability: number
+  onElevenlabsStabilityChange: (v: number) => void
+  elevenlabsSimilarity: number
+  onElevenlabsSimilarityChange: (v: number) => void
 }
 
 function RangeSlider({ label, value, min, max, step, onChange }: {
@@ -92,6 +106,13 @@ export function Settings({
   autoPlay, onAutoPlayChange,
   ollamaKeepAlive, onOllamaKeepAliveChange,
   ollamaContextLength, onOllamaContextLengthChange,
+  deepLKey, onDeepLKeyChange,
+  deepLFree, onDeepLFreeChange,
+  elevenlabsKey, onElevenlabsKeyChange,
+  elevenlabsModel, onElevenlabsModelChange,
+  elevenlabsVoiceId, onElevenlabsVoiceIdChange,
+  elevenlabsStability, onElevenlabsStabilityChange,
+  elevenlabsSimilarity, onElevenlabsSimilarityChange,
 }: SettingsProps) {
   const [config, setConfig] = useState<BackendConfig | null>(null)
   const [gpuStatus, setGpuStatus] = useState<GpuStatus | null>(null)
@@ -108,6 +129,9 @@ export function Settings({
 
   const [chatterboxVoices, setChatterboxVoices] = useState<ChatterboxVoice[]>([])
   const [loadingChatterboxVoices, setLoadingChatterboxVoices] = useState(false)
+
+  const [elevenlabsVoices, setElevenlabsVoices] = useState<ElevenLabsVoice[]>([])
+  const [loadingElevenlabsVoices, setLoadingElevenlabsVoices] = useState(false)
 
   useEffect(() => {
     getConfig().then(setConfig).catch(() => {})
@@ -145,6 +169,18 @@ export function Settings({
       .catch(() => setOllamaModels([]))
       .finally(() => setLoadingOllamaModels(false))
   }, [ollamaUrl])
+
+  useEffect(() => {
+    if (ttsProvider !== 'elevenlabs' || !elevenlabsKey) {
+      setElevenlabsVoices([])
+      return
+    }
+    setLoadingElevenlabsVoices(true)
+    getElevenLabsVoices(elevenlabsKey)
+      .then(setElevenlabsVoices)
+      .catch(() => setElevenlabsVoices([]))
+      .finally(() => setLoadingElevenlabsVoices(false))
+  }, [ttsProvider, elevenlabsKey])
 
   useEffect(() => {
     if (translateProvider !== 'openai' || !openaiUrl) {
@@ -211,6 +247,7 @@ export function Settings({
               >
                 <option value="piper">Piper</option>
                 <option value="chatterbox">Chatterbox</option>
+                <option value="elevenlabs">ElevenLabs</option>
               </Select>
 
               <Divider spacing="sm" />
@@ -282,6 +319,38 @@ export function Settings({
                   />
                 </>
               )}
+
+              {ttsProvider === 'elevenlabs' && (
+                <>
+                  <Input
+                    label="API Key"
+                    type="password"
+                    placeholder="xi-..."
+                    value={elevenlabsKey}
+                    onChange={(e) => onElevenlabsKeyChange(e.target.value)}
+                  />
+                  <SearchSelect
+                    label={loadingElevenlabsVoices ? 'Voice (loading...)' : 'Voice'}
+                    value={elevenlabsVoiceId}
+                    options={elevenlabsVoices.map((v) => v.id)}
+                    labels={elevenlabsVoices.reduce<Record<string, string>>((acc, v) => { acc[v.id] = v.name; return acc }, {})}
+                    placeholder="Select voice..."
+                    onChange={onElevenlabsVoiceIdChange}
+                  />
+                  <Select
+                    label="Model"
+                    value={elevenlabsModel}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onElevenlabsModelChange(e.target.value)}
+                  >
+                    <option value="eleven_multilingual_v2">Multilingual v2</option>
+                    <option value="eleven_turbo_v2_5">Turbo v2.5</option>
+                  </Select>
+                  <div className="space-y-2 mt-2">
+                    <RangeSlider label="stability" value={elevenlabsStability} min={0.0} max={1.0} step={0.05} onChange={onElevenlabsStabilityChange} />
+                    <RangeSlider label="similarity" value={elevenlabsSimilarity} min={0.0} max={1.0} step={0.05} onChange={onElevenlabsSimilarityChange} />
+                  </div>
+                </>
+              )}
             </>
           )}
         </div>
@@ -297,6 +366,7 @@ export function Settings({
           >
             <option value="local">Ollama</option>
             <option value="openai">OpenAI Compatible</option>
+            <option value="deepl">DeepL</option>
           </Select>
 
           {translateProvider === 'local' && (
@@ -353,6 +423,26 @@ export function Settings({
               />
             </>
           )}
+
+          {translateProvider === 'deepl' && (
+            <>
+              <Input
+                label="API Key"
+                type="password"
+                placeholder="DeepL API Key"
+                value={deepLKey}
+                onChange={(e) => onDeepLKeyChange(e.target.value)}
+              />
+              <Select
+                label="Tier"
+                value={deepLFree ? 'free' : 'pro'}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onDeepLFreeChange(e.target.value === 'free')}
+              >
+                <option value="free">Free</option>
+                <option value="pro">Pro</option>
+              </Select>
+            </>
+          )}
         </div>
       </Card>
 
@@ -377,7 +467,9 @@ export function Settings({
                   <dd>
                     {ttsProvider === 'chatterbox'
                       ? `chatterbox (${chatterboxVoice || config.chatterbox_voice})`
-                      : `piper (${piperVoice || config.piper_voice})`}
+                      : ttsProvider === 'elevenlabs'
+                        ? `elevenlabs (${elevenlabsModel})`
+                        : `piper (${piperVoice || config.piper_voice})`}
                   </dd>
                 </div>
               </>
@@ -388,7 +480,9 @@ export function Settings({
               <dd>
                 {translateProvider === 'openai'
                   ? `openai (${openaiModel || 'default'})`
-                  : `ollama (${ollamaModel || config.ollama_model})`}
+                  : translateProvider === 'deepl'
+                    ? 'deepl'
+                    : `ollama (${ollamaModel || config.ollama_model})`}
               </dd>
             </div>
             {gpuStatus && (ttsProvider === 'chatterbox' || translateProvider === 'local') && (
