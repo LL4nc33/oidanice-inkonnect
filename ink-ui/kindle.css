@@ -62,7 +62,7 @@ body {
 .btn-kindle {
   background-color: var(--bg);
   color: var(--text);
-  border: 1px solid var(--border);
+  border: 2px solid var(--border);
   transition: background-color 0.15s, color 0.15s, transform 0.1s;
 }
 .btn-kindle:hover {
@@ -75,6 +75,39 @@ body {
 .btn-kindle:focus-visible {
   outline: 2px solid var(--text);
   outline-offset: 2px;
+}
+
+/* ----------------------------------------------------------------
+ * Primary Button: .btn-kindle-primary
+ * WHY: Neobrutalism primary action -- inverted fill with hard
+ * offset shadow that shifts on press, giving tactile depth
+ * without breaking the monochrome palette.
+ * ---------------------------------------------------------------- */
+.btn-kindle-primary {
+  background-color: var(--text);
+  color: var(--bg);
+  border: 2px solid var(--border);
+  font-weight: 700;
+  box-shadow: 3px 3px 0 var(--border);
+  transition: box-shadow 0.1s, transform 0.1s, background-color 0.15s, color 0.15s;
+}
+.btn-kindle-primary:hover {
+  box-shadow: 1px 1px 0 var(--border);
+  transform: translate(2px, 2px);
+}
+.btn-kindle-primary:active {
+  box-shadow: none;
+  transform: translate(3px, 3px);
+}
+.btn-kindle-primary:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+.btn-kindle-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
 }
 
 /* ----------------------------------------------------------------
@@ -194,6 +227,15 @@ body {
 .progress-kindle > .progress-kindle-bar[data-indeterminate] {
   width: 40%;
   animation: progress-indeterminate 1.5s ease-in-out infinite;
+}
+
+/* ----------------------------------------------------------------
+ * Card Shadow: .card-kindle
+ * WHY: Hard offset shadow gives neobrutalism depth to content
+ * cards without breaking the flat monochrome aesthetic.
+ * ---------------------------------------------------------------- */
+.card-kindle {
+  box-shadow: 3px 3px 0 var(--border);
 }
 
 /* ----------------------------------------------------------------

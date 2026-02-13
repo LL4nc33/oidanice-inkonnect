@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@oidanice/ink-ui": "file:../kindle-ui",
+    "@oidanice/ink-ui": "file:../ink-ui",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

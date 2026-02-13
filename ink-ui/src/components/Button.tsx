@@ -17,8 +17,8 @@
 import { ButtonHTMLAttributes, forwardRef } from 'react'
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  /** Visual variant. 'default' uses btn-kindle inversion, 'ghost' has no border. */
-  variant?: 'default' | 'ghost'
+  /** Visual variant. 'default' uses btn-kindle inversion, 'ghost' has no border, 'primary' is inverted with hard shadow. */
+  variant?: 'default' | 'ghost' | 'primary'
 }
 
 /** WHY: forwardRef allows parent components to attach refs for focus
@@ -28,7 +28,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const base =
       variant === 'ghost'
         ? 'bg-transparent border-none transition-transform duration-100 active:scale-95'
-        : 'btn-kindle'
+        : variant === 'primary'
+          ? 'btn-kindle-primary'
+          : 'btn-kindle'
 
     return (
       <button

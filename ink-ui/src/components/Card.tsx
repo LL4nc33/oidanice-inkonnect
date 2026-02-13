@@ -32,10 +32,10 @@ export const Card = forwardRef<HTMLElement, CardProps>(
     return (
       <Component
         ref={ref}
-        className={`p-4 ${className}`}
+        className={`card-kindle p-4 ${className}`}
         style={{
           backgroundColor: 'var(--bg-secondary)',
-          border: '1px solid var(--border)',
+          border: '2px solid var(--border)',
           ...style,
         }}
         {...props}

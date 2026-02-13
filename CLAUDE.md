@@ -8,11 +8,12 @@ Barrierefreie Kommunikations-PWA: Sprache ↔ Text ↔ Sprache mit optionaler Ü
 - Backend: FastAPI + faster-whisper + Piper TTS + Chatterbox TTS + Ollama
 
 ## Struktur
+- `ink-ui/` - @oidanice/ink-ui Design System (lokaler Klon, wird per `npm run build` gebaut)
 - `frontend/` - React PWA mit ink-ui
   - `src/api/` - API-Client (`inkonnect.ts`)
-  - `src/hooks/` - Custom Hooks (`useSettings.ts`, `useAudioRecorder.ts`)
+  - `src/hooks/` - Custom Hooks (`useSettings.ts`, `useVoiceRecorder.ts`, `useClipboard.ts`, `useKeyboardShortcut.ts`)
   - `src/pages/` - Seiten (`Home.tsx`, `Settings.tsx`)
-  - `src/components/` - UI-Komponenten
+  - `src/components/` - UI-Komponenten (`PipelineRecorder`, `TranscriptDisplay`, `SpeakButton`, `ErrorCard`, `ResultActions`)
 - `backend/` - FastAPI mit Provider Abstraction Layer
   - `providers/base.py` - ABCs: `STTProvider`, `TTSProvider`, `TranslateProvider`
   - `providers/__init__.py` - Factory-Funktionen: `create_stt()`, `create_tts()`, `create_translate()`
