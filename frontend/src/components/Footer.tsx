@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-const STACK = ['faster-whisper', 'piper tts', 'chatterbox', 'ollama']
+const STACK = ['faster-whisper', 'piper tts', 'chatterbox', 'ollama', 'swagger ui']
 
 export function Footer() {
   const [index, setIndex] = useState(0)

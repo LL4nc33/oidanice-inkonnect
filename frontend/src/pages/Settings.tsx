@@ -383,6 +383,20 @@ export function Settings({
                 </div>
               </>
             )}
+            <Divider spacing="sm" />
+            <div className="flex justify-between">
+              <dt>api docs</dt>
+              <dd>
+                <a
+                  href="/docs"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ textDecoration: 'underline', textUnderlineOffset: '2px' }}
+                >
+                  Swagger UI →
+                </a>
+              </dd>
+            </div>
           </dl>
         </Card>
       )}
