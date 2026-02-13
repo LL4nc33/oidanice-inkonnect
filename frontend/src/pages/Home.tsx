@@ -97,7 +97,13 @@ export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoi
       })
       setPhase('result')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error')
+      const msg = err instanceof Error ? err.message : ''
+      if (msg.includes('No speech detected')) {
+        setPhase('idle')
+        lastBlob.current = null
+        return
+      }
+      setError(msg || 'Unknown error')
       setPhase('error')
     }
   }
