@@ -1,7 +1,10 @@
+import asyncio
 import base64
 import json
 import logging
+import subprocess
 import time
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -29,6 +32,78 @@ def _log_benchmark(entry: dict) -> None:
         logger.debug("Benchmark logging failed", exc_info=True)
 
 
+async def _save_message(
+    session_id: str,
+    direction: str,
+    original_text: str,
+    translated_text: str,
+    original_lang: str,
+    translated_lang: str,
+    audio_data: bytes | None,
+    audio_enabled: bool,
+    stt_ms: int | None,
+    translate_ms: int | None,
+    tts_ms: int | None,
+    model_used: str | None,
+) -> None:
+    """Save a pipeline result as a message in the database. Non-blocking."""
+    try:
+        from backend.database.connection import get_session_factory
+        from backend.database.models import Message, Session
+
+        s = get_settings()
+        factory = get_session_factory()
+        async with factory() as db:
+            session = await db.get(Session, uuid.UUID(session_id))
+            if not session:
+                logger.warning("Session %s not found, skipping message save", session_id)
+                return
+
+            msg_id = uuid.uuid4()
+            audio_path: str | None = None
+
+            # Save audio to filesystem if enabled
+            if audio_enabled and audio_data and session.audio_enabled:
+                audio_dir = Path(s.audio_storage_path) / session_id
+                audio_dir.mkdir(parents=True, exist_ok=True)
+                opus_file = audio_dir / f"{msg_id}.opus"
+                try:
+                    # Encode to Opus using ffmpeg
+                    proc = await asyncio.create_subprocess_exec(
+                        "ffmpeg", "-i", "pipe:0", "-c:a", "libopus", "-b:a", "16k",
+                        "-f", "opus", "pipe:1",
+                        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                    )
+                    opus_data, _ = await proc.communicate(input=audio_data)
+                    if proc.returncode == 0 and opus_data:
+                        opus_file.write_bytes(opus_data)
+                        audio_path = f"{session_id}/{msg_id}.opus"
+                except Exception as exc:
+                    logger.debug("Opus encoding failed: %s", exc)
+
+            msg = Message(
+                id=msg_id,
+                session_id=uuid.UUID(session_id),
+                direction=direction,
+                original_text=original_text,
+                translated_text=translated_text,
+                original_lang=original_lang,
+                translated_lang=translated_lang,
+                audio_path=audio_path,
+                stt_ms=stt_ms,
+                translate_ms=translate_ms,
+                tts_ms=tts_ms,
+                model_used=model_used,
+            )
+            db.add(msg)
+            # Update session timestamp
+            session.updated_at = datetime.now(timezone.utc)
+            await db.commit()
+            logger.debug("Message saved: %s in session %s", msg_id, session_id)
+    except Exception as exc:
+        logger.warning("Failed to save message: %s", exc)
+
+
 @router.post("/pipeline", response_model=PipelineResponse)
 async def full_pipeline(
     file: UploadFile = File(...),
@@ -54,6 +129,7 @@ async def full_pipeline(
     elevenlabs_model: str | None = Query(None),
     elevenlabs_stability: float | None = Query(None),
     elevenlabs_similarity: float | None = Query(None),
+    session_id: str | None = Query(None),
 ) -> PipelineResponse:
     total_start = time.perf_counter()
 
@@ -128,6 +204,24 @@ async def full_pipeline(
         "tts_ms": tts_ms,
         "total_ms": duration_ms,
     })
+
+    # Save to chat history (non-blocking)
+    if session_id and s.history_enabled:
+        model_used = model or (s.ollama_model if (provider or s.translate_provider) == "local" else provider or s.translate_provider)
+        asyncio.create_task(_save_message(
+            session_id=session_id,
+            direction="source",
+            original_text=text,
+            translated_text=translated,
+            original_lang=detected_lang,
+            translated_lang=target_lang,
+            audio_data=audio,
+            audio_enabled=True,
+            stt_ms=stt_ms,
+            translate_ms=translate_ms,
+            tts_ms=tts_ms,
+            model_used=model_used,
+        ))
 
     return PipelineResponse(
         original_text=text,
