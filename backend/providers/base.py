@@ -29,3 +29,12 @@ class TranslateProvider(ABC):
 
     async def cleanup(self) -> None:
         """Release resources."""
+
+
+class EmbeddingProvider(ABC):
+    @abstractmethod
+    async def embed(self, text: str) -> list[float]:
+        """Generate embedding vector for text."""
+
+    async def cleanup(self) -> None:
+        """Release resources."""

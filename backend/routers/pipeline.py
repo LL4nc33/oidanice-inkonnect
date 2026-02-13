@@ -100,8 +100,37 @@ async def _save_message(
             session.updated_at = datetime.now(timezone.utc)
             await db.commit()
             logger.debug("Message saved: %s in session %s", msg_id, session_id)
+
+            # Generate embedding (non-blocking, fire-and-forget)
+            asyncio.create_task(_generate_embedding(str(msg_id), original_text, translated_text))
     except Exception as exc:
         logger.warning("Failed to save message: %s", exc)
+
+
+async def _generate_embedding(message_id: str, original_text: str, translated_text: str) -> None:
+    """Generate embedding for a message and store it in the database."""
+    try:
+        s = get_settings()
+        from backend.providers.embedding.ollama_embed import OllamaEmbeddingProvider
+        provider = OllamaEmbeddingProvider(base_url=s.embedding_url, model=s.embedding_model)
+        try:
+            # Embed combined text for better semantic search
+            combined = f"{original_text} {translated_text}"
+            embedding = await provider.embed(combined)
+
+            from backend.database.connection import get_session_factory
+            from backend.database.models import Message
+            factory = get_session_factory()
+            async with factory() as db:
+                msg = await db.get(Message, uuid.UUID(message_id))
+                if msg:
+                    msg.embedding = embedding
+                    await db.commit()
+                    logger.debug("Embedding saved for message %s", message_id)
+        finally:
+            await provider.cleanup()
+    except Exception as exc:
+        logger.debug("Embedding generation failed for %s: %s", message_id, exc)
 
 
 @router.post("/pipeline", response_model=PipelineResponse)
