@@ -10,7 +10,7 @@ from fastapi import APIRouter, HTTPException, Query
 from sqlalchemy import func, select
 
 from backend.database.connection import get_session_factory
-from backend.database.models import Message, Session
+from backend.database.models import Message, Organization, Session
 from backend.dependencies import get_settings
 from backend.models import SessionCreate, SessionListResponse, SessionResponse, SessionUpdate
 
@@ -45,13 +45,27 @@ def _session_to_response(session: Session, message_count: int = 0) -> SessionRes
 async def create_session(body: SessionCreate) -> SessionResponse:
     factory = get_session_factory()
     async with factory() as db:
+        # Determine retention from org or default to 30 days
+        expires_at = datetime.now(timezone.utc) + timedelta(days=30)
+        audio_enabled = body.audio_enabled
+        if body.org_id:
+            org = await db.get(Organization, uuid.UUID(body.org_id))
+            if org:
+                policy = org.retention_policy
+                if policy == "unlimited":
+                    expires_at = None
+                elif policy in RETENTION_MAP:
+                    expires_at = datetime.now(timezone.utc) + RETENTION_MAP[policy]
+                if not body.audio_enabled:
+                    audio_enabled = org.audio_enabled_default
+
         session = Session(
             source_lang=body.source_lang,
             target_lang=body.target_lang,
-            audio_enabled=body.audio_enabled,
+            audio_enabled=audio_enabled,
             title=body.title,
             org_id=uuid.UUID(body.org_id) if body.org_id else None,
-            expires_at=datetime.now(timezone.utc) + timedelta(days=30),
+            expires_at=expires_at,
         )
         db.add(session)
         await db.commit()

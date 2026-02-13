@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 from collections.abc import AsyncIterator
@@ -11,7 +12,7 @@ from fastapi.responses import FileResponse
 from backend.config import Settings
 from backend.dependencies import init_providers, get_stt, get_tts, get_translate
 from backend.providers import create_stt, create_tts, create_translate
-from backend.routers import stt, tts, translate, pipeline, config, sessions, messages, search
+from backend.routers import stt, tts, translate, pipeline, config, sessions, messages, search, retention
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -46,6 +47,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             async with get_engine().begin() as conn:
                 await conn.run_sync(Base.metadata.create_all)
             logger.info("Database initialized")
+            # Start cleanup background task
+            from backend.database.cleanup import cleanup_loop
+            asyncio.create_task(cleanup_loop())
         except Exception as e:
             logger.warning("Database initialization failed: %s (history will be disabled)", e)
 
@@ -87,6 +91,7 @@ app.include_router(config.router)
 app.include_router(sessions.router)
 app.include_router(messages.router)
 app.include_router(search.router)
+app.include_router(retention.router)
 
 # Gateway (v1 API for external clients)
 if Settings().gateway_enabled:
