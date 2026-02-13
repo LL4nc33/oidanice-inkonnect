@@ -18,11 +18,16 @@ def _resolve_translate(
     api_url: str | None,
     api_key: str | None,
     model: str | None,
+    ollama_url: str | None = None,
 ) -> tuple[TranslateProvider, bool]:
     """Return (provider_instance, is_ad_hoc). Ad-hoc providers must be cleaned up."""
     if provider == "openai" and api_url:
         from backend.providers.translate.openai_compat import OpenAICompatProvider
         return OpenAICompatProvider(model=model or "", base_url=api_url, api_key=api_key or ""), True
+    if ollama_url:
+        from backend.providers.translate.ollama_local import OllamaLocalProvider
+        s = get_settings()
+        return OllamaLocalProvider(model=model or s.ollama_model, base_url=ollama_url), True
     return get_translate(), False
 
 
@@ -59,6 +64,7 @@ async def full_pipeline(
     api_url: str | None = Query(None),
     api_key: str | None = Query(None),
     chatterbox_url: str | None = Query(None),
+    ollama_url: str | None = Query(None),
 ) -> PipelineResponse:
     start = time.perf_counter()
 
@@ -67,7 +73,7 @@ async def full_pipeline(
     text, detected_lang = await get_stt().transcribe(audio, source_lang)
 
     # 2. Translate
-    translator, ad_hoc = _resolve_translate(provider, api_url, api_key, model)
+    translator, ad_hoc = _resolve_translate(provider, api_url, api_key, model, ollama_url)
     try:
         translated = await translator.translate(text, detected_lang, target_lang, model)
     finally:

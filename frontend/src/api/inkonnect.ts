@@ -107,6 +107,7 @@ export async function pipeline(
   ttsProvider?: string,
   synthesisParams?: SynthesisParams,
   chatterboxUrl?: string,
+  ollamaUrl?: string,
 ): Promise<PipelineResponse> {
   const form = new FormData()
   form.append('file', audio, 'recording.webm')
@@ -124,6 +125,7 @@ export async function pipeline(
   if (synthesisParams?.cfgWeight != null) params.set('cfg_weight', String(synthesisParams.cfgWeight))
   if (synthesisParams?.temperature != null) params.set('temperature', String(synthesisParams.temperature))
   if (chatterboxUrl) params.set('chatterbox_url', chatterboxUrl)
+  if (ollamaUrl) params.set('ollama_url', ollamaUrl)
   return request(`/pipeline?${params}`, { method: 'POST', body: form })
 }
 

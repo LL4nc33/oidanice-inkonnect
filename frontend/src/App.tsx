@@ -39,6 +39,7 @@ export function App() {
           chatterboxVoice={settings.chatterboxVoice}
           chatterboxUrl={settings.chatterboxUrl}
           ollamaModel={settings.ollamaModel}
+          ollamaUrl={settings.ollamaUrl}
           translateProvider={settings.translateProvider}
           openaiUrl={settings.openaiUrl}
           openaiKey={settings.openaiKey}
