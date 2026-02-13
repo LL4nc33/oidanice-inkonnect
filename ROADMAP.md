@@ -24,6 +24,20 @@
 - [x] Auto-play translation audio (configurable)
 - [x] Piper voice download from HuggingFace
 
+## v0.3 -- API Gateway (done)
+
+- [x] OpenAI-compatible `/v1/audio/transcriptions` (STT)
+- [x] OpenAI-compatible `/v1/audio/speech` (TTS, raw WAV)
+- [x] `/v1/translate` (text translation)
+- [x] `/v1/pipeline` (full STT -> Translate -> TTS, JSON or raw audio)
+- [x] `/v1/models` (OpenAI-format model list)
+- [x] `/v1/health` (provider status with latency)
+- [x] `/v1/voices` and `/v1/languages` (service discovery)
+- [x] API key authentication (Bearer / X-API-Key)
+- [x] In-memory token bucket rate limiting
+- [x] Shared resolver (DRY provider resolution)
+- [x] Chatterbox multilingual support (language_id)
+
 ## v1.0 -- Production
 
 - [ ] End-to-end testing

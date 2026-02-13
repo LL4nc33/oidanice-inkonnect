@@ -3,32 +3,49 @@
 ## System Overview
 
 ```
-┌─────────────┐     ┌──────────────────────────────────┐
-│   Browser    │────>│         FastAPI Backend           │
-│  React PWA   │<────│                                  │
-└─────────────┘     │  ┌─────────┐  ┌──────────────┐   │
-                    │  │ Routers │  │ Dependencies  │   │
-                    │  └────┬────┘  └──────┬───────┘   │
-                    │       │              │            │
-                    │  ┌────▼──────────────▼────────┐   │
-                    │  │    Provider Abstraction     │   │
-                    │  │    Layer                    │   │
-                    │  └──┬────────┬────────┬───────┘   │
-                    │     │        │        │           │
-                    │  ┌──▼──┐ ┌──▼──┐ ┌──▼───────┐   │
-                    │  │ STT │ │ TTS │ │Translate  │   │
-                    │  └──┬──┘ └──┬──┘ └──┬───────┘   │
-                    └─────┼───────┼───────┼────────────┘
-                          │       │       │
-                    ┌─────▼──┐ ┌─▼────┐ ┌▼───────┐
-                    │Whisper │ │Piper │ │ Ollama  │
-                    │  (CPU) │ │(CPU) │ │ (GPU)   │
-                    └────────┘ └──────┘ └────────┘
-                               ┌─▼──────────┐
-                               │ Chatterbox  │
-                               │ (GPU, remote)│
-                               └─────────────┘
+                           ┌──────────────────────────────────┐
+┌─────────────┐            │         FastAPI Backend           │
+│   Browser    │──/api/*──>│                                  │
+│  React PWA   │<──────────│  ┌─────────┐  ┌──────────────┐  │
+└─────────────┘            │  │ Routers │  │  Resolver     │  │
+                           │  └────┬────┘  └──────┬───────┘  │
+┌─────────────┐            │       │              │           │
+│  External    │──/v1/*───>│  ┌────▼──────────────▼────────┐  │
+│  Clients     │<──────────│  │    Provider Abstraction     │  │
+└─────────────┘            │  │    Layer                    │  │
+                           │  └──┬────────┬────────┬───────┘  │
+                           │     │        │        │          │
+                           │  ┌──▼──┐ ┌──▼──┐ ┌──▼───────┐  │
+                           │  │ STT │ │ TTS │ │Translate  │  │
+                           │  └──┬──┘ └──┬──┘ └──┬───────┘  │
+                           └─────┼───────┼───────┼───────────┘
+                                 │       │       │
+                           ┌─────▼──┐ ┌─▼────┐ ┌▼───────┐
+                           │Whisper │ │Piper │ │ Ollama  │
+                           │  (CPU) │ │(CPU) │ │ (GPU)   │
+                           └────────┘ └──────┘ └────────┘
+                                      ┌─▼──────────┐
+                                      │ Chatterbox  │
+                                      │ (GPU, remote)│
+                                      └─────────────┘
 ```
+
+## API Layers
+
+### Frontend API (`/api/*`)
+
+Internal endpoints for the React PWA. Accepts settings as query parameters, returns base64-encoded audio in JSON responses.
+
+### Gateway API (`/v1/*`)
+
+OpenAI-compatible endpoints for external clients. Features:
+
+- **Auth**: API key via `Authorization: Bearer` or `X-API-Key` header
+- **Rate limiting**: In-memory token bucket, pipeline calls cost 3 tokens
+- **Raw audio**: TTS returns WAV bytes directly (no base64 overhead)
+- **Service discovery**: `/v1/health`, `/v1/models`, `/v1/voices`, `/v1/languages`
+
+Both layers share the same provider instances via the shared resolver (`backend/resolver.py`).
 
 ## Provider Pattern
 
@@ -44,13 +61,16 @@ Factory functions in `providers/__init__.py` create the correct provider based o
 
 ### Runtime Provider Switching
 
-The frontend can override the backend default provider per request. Routers use `_resolve_tts()` and `_resolve_translate()` to create ad-hoc providers when the frontend requests a different provider than the singleton:
+The shared resolver in `backend/resolver.py` handles runtime switching. Both `/api/*` and `/v1/*` routers use it:
 
 ```python
-def _resolve_tts(tts_provider, voice, chatterbox_url=None):
+def resolve_tts(tts_provider, voice, chatterbox_url=None):
     if tts_provider == "chatterbox":
         return ChatterboxRemoteProvider(base_url=...), True  # ad-hoc
-    return get_tts(), False  # singleton
+    singleton = get_tts()
+    if singleton is None:
+        raise RuntimeError("No TTS provider available")
+    return singleton, False  # singleton
 ```
 
 Ad-hoc providers are always cleaned up in a `finally` block.
@@ -85,3 +105,31 @@ When Ollama and Chatterbox share a GPU (e.g. RTX 2060 12GB):
   - `SpeakButton.tsx` -- Audio playback with auto-play support
 - `hooks/` -- Audio recording (`useAudioRecorder`), voice recording (`useVoiceRecorder`), settings persistence (`useSettings`)
 - `api/inkonnect.ts` -- Typed fetch wrapper for all backend endpoints
+
+## Backend Structure
+
+```
+backend/
+├── main.py              # FastAPI app, lifespan, router mounting
+├── config.py            # Pydantic Settings (env-based)
+├── dependencies.py      # Global provider singletons
+├── resolver.py          # Shared resolve_tts() / resolve_translate()
+├── models.py            # Request/Response Pydantic models
+├── providers/
+│   ├── base.py          # ABCs: STTProvider, TTSProvider, TranslateProvider
+│   ├── __init__.py      # Factory functions
+│   ├── stt/
+│   ├── tts/
+│   └── translate/
+├── routers/             # /api/* endpoints (frontend)
+│   ├── stt.py
+│   ├── tts.py
+│   ├── translate.py
+│   ├── pipeline.py
+│   └── config.py
+└── gateway/             # /v1/* endpoints (external clients)
+    ├── router.py        # All gateway endpoints
+    ├── auth.py          # API key authentication
+    ├── rate_limit.py    # Token bucket rate limiter
+    └── models.py        # Gateway-specific models
+```

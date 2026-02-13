@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.2.0-black?style=flat-square" alt="Version" />
+  <img src="https://img.shields.io/badge/version-0.3.0-black?style=flat-square" alt="Version" />
   <img src="https://img.shields.io/badge/docker-compose-black?style=flat-square&logo=docker&logoColor=white" alt="Docker" />
   <img src="https://img.shields.io/badge/whisper-AI-black?style=flat-square" alt="Whisper" />
   <img src="https://img.shields.io/badge/PWA-installable-black?style=flat-square" alt="PWA" />
@@ -22,6 +22,7 @@
 ## Features
 
 - **Full pipeline** -- record, transcribe, translate, and speak back in one step
+- **API Gateway** -- OpenAI-compatible `/v1/*` API for external clients with auth and rate limiting
 - **Speech-to-Text** -- faster-whisper with automatic language detection for 99 languages
 - **Text-to-Speech** -- Piper TTS (local, CPU) and Chatterbox TTS (remote, GPU) with voice cloning
 - **Voice cloning** -- record or upload voice samples, manage voices, 22 supported languages
@@ -60,6 +61,36 @@ Open [http://localhost:8000](http://localhost:8000) and start recording.
 
 ---
 
+## Gateway API
+
+The gateway exposes an OpenAI-compatible API under `/v1/*` for external clients:
+
+```bash
+# Text-to-Speech
+curl -X POST http://localhost:8000/v1/audio/speech \
+  -H "Content-Type: application/json" \
+  -d '{"input": "Hallo Welt", "model": "piper", "voice": "de_DE-thorsten-high"}' \
+  -o output.wav
+
+# Speech-to-Text
+curl -X POST http://localhost:8000/v1/audio/transcriptions \
+  -F "file=@recording.webm" -F "model=whisper-small"
+
+# Full Pipeline (STT -> Translate -> TTS)
+curl -X POST http://localhost:8000/v1/pipeline \
+  -F "file=@recording.webm" -F "target_lang=en" -F "tts=true"
+
+# Service Discovery
+curl http://localhost:8000/v1/health
+curl http://localhost:8000/v1/models
+curl http://localhost:8000/v1/voices
+curl http://localhost:8000/v1/languages
+```
+
+Auth and rate limiting are configurable via `GATEWAY_API_KEYS` and `GATEWAY_RATE_LIMIT` env vars.
+
+---
+
 ## Documentation
 
 | Topic | Description |
@@ -87,4 +118,4 @@ Open [http://localhost:8000](http://localhost:8000) and start recording.
 
 ---
 
-Built by [OidaNice](https://github.com/LL4nc33) -- powered by faster-whisper, piper, chatterbox & ollama -- v0.2.0
+Built by [OidaNice](https://github.com/LL4nc33) -- powered by faster-whisper, piper, chatterbox & ollama -- v0.3.0
