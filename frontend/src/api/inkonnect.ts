@@ -28,6 +28,64 @@ interface PipelineResponse {
   tts_ms: number | null
 }
 
+// --- Chat History Types ---
+
+export interface SessionResponse {
+  id: string
+  org_id: string | null
+  title: string | null
+  source_lang: string
+  target_lang: string
+  audio_enabled: boolean
+  message_count: number
+  created_at: string
+  updated_at: string
+  expires_at: string | null
+}
+
+export interface SessionListResponse {
+  sessions: SessionResponse[]
+  total: number
+}
+
+export interface MessageResponse {
+  id: string
+  session_id: string
+  direction: string
+  original_text: string
+  translated_text: string
+  original_lang: string
+  translated_lang: string
+  audio_path: string | null
+  stt_ms: number | null
+  translate_ms: number | null
+  tts_ms: number | null
+  model_used: string | null
+  created_at: string
+}
+
+export interface MessageListResponse {
+  messages: MessageResponse[]
+  total: number
+}
+
+export interface SearchResult {
+  id: string
+  session_id: string
+  original_text: string
+  translated_text: string
+  original_lang: string
+  translated_lang: string
+  similarity: number
+  created_at: string
+}
+
+export interface SearchResponse {
+  results: SearchResult[]
+  query: string
+  total: number
+}
+
 interface ConfigResponse {
   stt_provider: string
   tts_provider: string
@@ -124,6 +182,7 @@ export async function pipeline(
   ollamaKeepAlive?: string,
   ollamaContextLength?: number,
   elevenlabsParams?: ElevenLabsParams,
+  sessionId?: string,
 ): Promise<PipelineResponse> {
   const form = new FormData()
   form.append('file', audio, 'recording.webm')
@@ -150,6 +209,7 @@ export async function pipeline(
   if (elevenlabsParams?.model) params.set('elevenlabs_model', elevenlabsParams.model)
   if (elevenlabsParams?.stability != null) params.set('elevenlabs_stability', String(elevenlabsParams.stability))
   if (elevenlabsParams?.similarity != null) params.set('elevenlabs_similarity', String(elevenlabsParams.similarity))
+  if (sessionId) params.set('session_id', sessionId)
   return request(`/pipeline?${params}`, { method: 'POST', body: form })
 }
 
@@ -318,4 +378,68 @@ export async function getDeepLUsage(key: string, free: boolean): Promise<UsageRe
 export async function getElevenLabsUsage(key: string): Promise<UsageResponse> {
   const params = new URLSearchParams({ key })
   return request(`/elevenlabs/usage?${params}`)
+}
+
+// --- Chat History API ---
+
+export async function createSession(
+  sourceLang: string,
+  targetLang: string,
+  audioEnabled?: boolean,
+  title?: string,
+): Promise<SessionResponse> {
+  return request('/sessions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      source_lang: sourceLang,
+      target_lang: targetLang,
+      audio_enabled: audioEnabled ?? false,
+      title: title || undefined,
+    }),
+  })
+}
+
+export async function listSessions(limit = 20, offset = 0): Promise<SessionListResponse> {
+  return request(`/sessions?limit=${limit}&offset=${offset}`)
+}
+
+export async function getSession(id: string): Promise<SessionResponse> {
+  return request(`/sessions/${id}`)
+}
+
+export async function updateSession(id: string, patch: { title?: string; audio_enabled?: boolean }): Promise<SessionResponse> {
+  return request(`/sessions/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(patch),
+  })
+}
+
+export async function deleteSession(id: string): Promise<void> {
+  await fetch(`${BASE_URL}/sessions/${id}`, { method: 'DELETE' })
+}
+
+export async function getMessages(sessionId: string, limit = 50, offset = 0): Promise<MessageListResponse> {
+  return request(`/sessions/${sessionId}/messages?limit=${limit}&offset=${offset}`)
+}
+
+export function getMessageAudioUrl(sessionId: string, messageId: string): string {
+  return `${BASE_URL}/sessions/${sessionId}/messages/${messageId}/audio`
+}
+
+export async function searchMessages(
+  query: string,
+  opts?: { limit?: number; sourceLang?: string; targetLang?: string },
+): Promise<SearchResponse> {
+  return request('/search', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      query,
+      limit: opts?.limit ?? 10,
+      source_lang: opts?.sourceLang || undefined,
+      target_lang: opts?.targetLang || undefined,
+    }),
+  })
 }

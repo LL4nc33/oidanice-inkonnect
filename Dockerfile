@@ -15,23 +15,23 @@ FROM python:3.11-slim AS production
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ffmpeg \
+    ffmpeg curl \
     && rm -rf /var/lib/apt/lists/*
 
 COPY backend/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Piper voice download (early layer for caching)
+RUN mkdir -p /app/piper-voices && \
+    curl -L --retry 5 --retry-delay 10 --retry-connrefused -C - -o /app/piper-voices/de_DE-thorsten-high.onnx \
+      "https://huggingface.co/rhasspy/piper-voices/resolve/main/de/de_DE/thorsten/high/de_DE-thorsten-high.onnx" && \
+    curl -L --retry 5 --retry-delay 10 --retry-connrefused -o /app/piper-voices/de_DE-thorsten-high.onnx.json \
+      "https://huggingface.co/rhasspy/piper-voices/resolve/main/de/de_DE/thorsten/high/de_DE-thorsten-high.onnx.json"
+
 COPY VERSION ./
 COPY alembic.ini ./
 COPY backend/ ./backend/
 COPY --from=frontend-build /app/frontend/dist ./static/
-
-RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/* && \
-    mkdir -p /app/piper-voices && \
-    curl -L -o /app/piper-voices/de_DE-thorsten-high.onnx \
-      "https://huggingface.co/rhasspy/piper-voices/resolve/main/de/de_DE/thorsten/high/de_DE-thorsten-high.onnx" && \
-    curl -L -o /app/piper-voices/de_DE-thorsten-high.onnx.json \
-      "https://huggingface.co/rhasspy/piper-voices/resolve/main/de/de_DE/thorsten/high/de_DE-thorsten-high.onnx.json"
 
 RUN useradd -r -m -s /bin/false appuser && \
     mkdir -p /app/models /app/data/audio && \

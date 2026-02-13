@@ -38,6 +38,10 @@ export interface LayoutProps {
   sidebar?: ReactNode
   /** Which side the sidebar appears on. Defaults to 'left'. */
   sidebarPosition?: 'left' | 'right'
+  /** Width class for the sidebar (e.g. 'w-64'). */
+  sidebarWidth?: string
+  /** Additional className for the sidebar aside element. */
+  sidebarClassName?: string
   /** Footer content. If omitted, no footer is rendered. */
   footer?: ReactNode
   /** Max width class for the main content area. Defaults to 'max-w-4xl'. */
@@ -57,6 +61,8 @@ export function Layout({
   banner,
   sidebar,
   sidebarPosition = 'left',
+  sidebarWidth,
+  sidebarClassName,
   footer,
   maxWidth = 'max-w-4xl',
   className = '',
@@ -95,7 +101,7 @@ export function Layout({
         <div className={`flex-1 flex ${sidebarPosition === 'right' ? 'flex-row' : 'flex-row-reverse'}`}>
           {mainContent}
           <aside
-            className="py-8 px-4 shrink-0"
+            className={`shrink-0 overflow-y-auto ${sidebarWidth ?? ''} ${sidebarClassName ?? ''}`}
             style={{
               borderLeft: sidebarPosition === 'right' ? '1px solid var(--border)' : undefined,
               borderRight: sidebarPosition === 'left' ? '1px solid var(--border)' : undefined,

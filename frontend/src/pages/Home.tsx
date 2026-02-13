@@ -1,12 +1,14 @@
 import { useState, useRef, useCallback } from 'react'
-import { Progress } from '@oidanice/ink-ui'
-import { pipeline, ProviderOptions, warmupGpu, SynthesisParams, ElevenLabsParams } from '../api/inkonnect'
+import { Divider, Progress } from '@oidanice/ink-ui'
+import { pipeline, ProviderOptions, warmupGpu, SynthesisParams, ElevenLabsParams, MessageResponse } from '../api/inkonnect'
 import { PipelineRecorder } from '../components/PipelineRecorder'
 import { TranscriptDisplay } from '../components/TranscriptDisplay'
 import { SpeakButton } from '../components/SpeakButton'
 import { LanguageSelector } from '../components/LanguageSelector'
 import { ErrorCard } from '../components/ErrorCard'
 import { ResultActions } from '../components/ResultActions'
+import { SessionBar } from '../components/SessionBar'
+import { MessageFeed } from '../components/MessageFeed'
 import { useKeyboardShortcut } from '../hooks/useKeyboardShortcut'
 
 interface HomeProps {
@@ -38,6 +40,11 @@ interface HomeProps {
   elevenlabsSimilarity: number
   onSourceChange: (lang: string) => void
   onTargetChange: (lang: string) => void
+  sessionId: string | null
+  sessionTitle: string | null
+  messages: MessageResponse[]
+  onEndSession: () => void
+  onMessageAppend: (msg: MessageResponse) => void
 }
 
 type Phase = 'idle' | 'processing' | 'result' | 'error'
@@ -54,7 +61,7 @@ interface Result {
   ttsMs: number | null
 }
 
-export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoice, chatterboxVoice, chatterboxUrl, ollamaModel, ollamaUrl, translateProvider, openaiUrl, openaiKey, openaiModel, chatterboxExaggeration, chatterboxCfgWeight, chatterboxTemperature, autoPlay, ollamaKeepAlive, ollamaContextLength, deepLKey, deepLFree, elevenlabsKey, elevenlabsModel, elevenlabsVoiceId, elevenlabsStability, elevenlabsSimilarity, onSourceChange, onTargetChange }: HomeProps) {
+export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoice, chatterboxVoice, chatterboxUrl, ollamaModel, ollamaUrl, translateProvider, openaiUrl, openaiKey, openaiModel, chatterboxExaggeration, chatterboxCfgWeight, chatterboxTemperature, autoPlay, ollamaKeepAlive, ollamaContextLength, deepLKey, deepLFree, elevenlabsKey, elevenlabsModel, elevenlabsVoiceId, elevenlabsStability, elevenlabsSimilarity, onSourceChange, onTargetChange, sessionId, sessionTitle, messages, onEndSession, onMessageAppend }: HomeProps) {
   const [phase, setPhase] = useState<Phase>('idle')
   const [result, setResult] = useState<Result | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -112,6 +119,7 @@ export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoi
         translateProvider === 'local' ? ollamaKeepAlive || undefined : undefined,
         translateProvider === 'local' && ollamaContextLength ? parseInt(ollamaContextLength, 10) : undefined,
         elParams,
+        sessionId || undefined,
       )
       setResult({
         originalText: res.original_text,
@@ -125,6 +133,23 @@ export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoi
         ttsMs: res.tts_ms,
       })
       setPhase('result')
+      if (sessionId) {
+        onMessageAppend({
+          id: crypto.randomUUID(),
+          session_id: sessionId,
+          direction: 'source',
+          original_text: res.original_text,
+          translated_text: res.translated_text,
+          original_lang: res.detected_language,
+          translated_lang: targetLang,
+          audio_path: ttsEnabled ? 'pending' : null,
+          stt_ms: res.stt_ms,
+          translate_ms: res.translate_ms,
+          tts_ms: res.tts_ms,
+          model_used: null,
+          created_at: new Date().toISOString(),
+        })
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : ''
       if (msg.includes('No speech detected')) {
@@ -160,14 +185,46 @@ export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoi
     }
   }
 
+  const inSession = sessionId !== null
+
   return (
     <div className="space-y-4">
-      <LanguageSelector
-        sourceLang={sourceLang}
-        targetLang={targetLang}
-        onSourceChange={onSourceChange}
-        onTargetChange={onTargetChange}
-      />
+      {inSession ? (
+        <>
+          <SessionBar
+            sessionId={sessionId}
+            title={sessionTitle}
+            messageCount={messages.length}
+            onEnd={onEndSession}
+          />
+
+          <LanguageSelector
+            sourceLang={sourceLang}
+            targetLang={targetLang}
+            onSourceChange={onSourceChange}
+            onTargetChange={onTargetChange}
+          />
+
+          {messages.length > 0 && (
+            <MessageFeed messages={messages} sessionId={sessionId} />
+          )}
+        </>
+      ) : (
+        <>
+          <div className="flex items-center gap-3 font-mono text-xs" style={{ color: 'var(--text-secondary)' }}>
+            <Divider spacing="sm" className="flex-1" />
+            <span className="shrink-0">translate without logging</span>
+            <Divider spacing="sm" className="flex-1" />
+          </div>
+
+          <LanguageSelector
+            sourceLang={sourceLang}
+            targetLang={targetLang}
+            onSourceChange={onSourceChange}
+            onTargetChange={onTargetChange}
+          />
+        </>
+      )}
 
       {phase !== 'processing' && phase !== 'result' && phase !== 'error' && (
         <PipelineRecorder
