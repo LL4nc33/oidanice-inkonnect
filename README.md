@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.0.1a-black?style=flat-square" alt="Version" />
+  <img src="https://img.shields.io/badge/version-0.1.4-black?style=flat-square" alt="Version" />
   <img src="https://img.shields.io/badge/docker-compose-black?style=flat-square&logo=docker&logoColor=white" alt="Docker" />
   <img src="https://img.shields.io/badge/whisper-AI-black?style=flat-square" alt="Whisper" />
   <img src="https://img.shields.io/badge/PWA-installable-black?style=flat-square" alt="PWA" />
@@ -23,8 +23,8 @@
 
 - **Full pipeline** -- record, transcribe, translate, and speak back in one step
 - **Speech-to-Text** -- faster-whisper with automatic language detection for 99 languages
-- **Text-to-Speech** -- Piper TTS with natural-sounding voices
-- **Translation** -- Ollama LLM, runs locally, GDPR-compliant
+- **Text-to-Speech** -- Piper TTS (local) and Chatterbox TTS (remote GPU) with voice cloning
+- **Translation** -- Ollama LLM or OpenAI-compatible APIs, GDPR-compliant
 - **Ink-inspired UI** -- monochrome design with dark mode, serif typography, no distractions
 - **Installable PWA** -- add to home screen on mobile with browser-specific install prompts
 - **Provider pattern** -- swap local and cloud providers interchangeably
@@ -77,10 +77,10 @@ Open [http://localhost:8000](http://localhost:8000) and start recording.
 | UI | @oidanice/ink-ui |
 | Backend | FastAPI, Python 3.12 |
 | STT | faster-whisper (CTranslate2) |
-| TTS | Piper TTS |
-| Translation | Ollama (ministral:3b) |
+| TTS | Piper TTS, Chatterbox TTS |
+| Translation | Ollama, OpenAI-compatible |
 | Infrastructure | Docker Compose |
 
 ---
 
-Built by [OidaNice](https://github.com/LL4nc33) -- powered by faster-whisper -- built with [Claude Workflow Engine](https://github.com/LL4nc33/claude-workflow-engine) -- v0.0.1a
+Built by [OidaNice](https://github.com/LL4nc33) -- powered by faster-whisper -- v0.1.4
