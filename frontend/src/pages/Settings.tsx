@@ -203,8 +203,8 @@ export function Settings({
                 value={ttsProvider}
                 onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onTtsProviderChange(e.target.value)}
               >
-                <option value="piper">Piper (Local)</option>
-                <option value="chatterbox">Chatterbox (Remote)</option>
+                <option value="piper">Piper</option>
+                <option value="chatterbox">Chatterbox</option>
               </Select>
 
               <Divider spacing="sm" />
@@ -289,7 +289,7 @@ export function Settings({
             value={translateProvider}
             onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onTranslateProviderChange(e.target.value)}
           >
-            <option value="local">Ollama (Local)</option>
+            <option value="local">Ollama</option>
             <option value="openai">OpenAI Compatible</option>
           </Select>
 
