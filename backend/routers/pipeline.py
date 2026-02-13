@@ -50,6 +50,9 @@ async def full_pipeline(
     tts: bool = Query(True),
     voice: str | None = Query(None),
     tts_provider: str | None = Query(None),
+    exaggeration: float | None = Query(None),
+    cfg_weight: float | None = Query(None),
+    temperature: float | None = Query(None),
     model: str | None = Query(None),
     provider: str | None = Query(None),
     api_url: str | None = Query(None),
@@ -74,7 +77,14 @@ async def full_pipeline(
     if tts:
         tts_impl, tts_ad_hoc = _resolve_tts(tts_provider, voice)
         try:
-            audio_bytes = await tts_impl.synthesize(translated, target_lang, voice)
+            audio_bytes = await tts_impl.synthesize(
+                translated,
+                target_lang,
+                voice,
+                exaggeration=exaggeration,
+                cfg_weight=cfg_weight,
+                temperature=temperature,
+            )
             audio_b64 = base64.b64encode(audio_bytes).decode()
         finally:
             if tts_ad_hoc:

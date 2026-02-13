@@ -16,6 +16,9 @@ class TTSRequest(BaseModel):
     lang: str = "de"
     voice: str | None = None
     tts_provider: str | None = None
+    exaggeration: float | None = None
+    cfg_weight: float | None = None
+    temperature: float | None = None
 
 
 class TTSResponse(BaseModel):
@@ -40,6 +43,9 @@ class PipelineRequest(BaseModel):
     tts: bool = True
     voice: str | None = None
     tts_provider: str | None = None
+    exaggeration: float | None = None
+    cfg_weight: float | None = None
+    temperature: float | None = None
 
 
 class PipelineResponse(BaseModel):
@@ -92,3 +98,12 @@ class ChatterboxUploadResponse(BaseModel):
     success: bool
     name: str
     message: str
+
+
+class LanguagesResponse(BaseModel):
+    languages: list[str]
+
+
+class GpuStatusResponse(BaseModel):
+    ollama: dict
+    chatterbox: dict

@@ -13,9 +13,23 @@ class ChatterboxRemoteProvider(TTSProvider):
         self._voice = voice
         self._client = httpx.AsyncClient(timeout=120.0)
 
-    async def synthesize(self, text: str, lang: str, voice: str | None = None) -> bytes:
+    async def synthesize(
+        self,
+        text: str,
+        lang: str,
+        voice: str | None = None,
+        exaggeration: float | None = None,
+        cfg_weight: float | None = None,
+        temperature: float | None = None,
+    ) -> bytes:
         voice_name = voice or self._voice
-        payload = {"input": text, "voice": voice_name}
+        payload: dict[str, object] = {"input": text, "voice": voice_name}
+        if exaggeration is not None:
+            payload["exaggeration"] = exaggeration
+        if cfg_weight is not None:
+            payload["cfg_weight"] = cfg_weight
+        if temperature is not None:
+            payload["temperature"] = temperature
         logger.info("Chatterbox synthesize voice=%s len=%d", voice_name, len(text))
 
         resp = await self._client.post(
@@ -32,12 +46,17 @@ class ChatterboxRemoteProvider(TTSProvider):
         data: list[dict[str, str | None]] = resp.json()
         return data
 
-    async def upload_voice(self, name: str, audio_data: bytes) -> dict[str, object]:
+    async def upload_voice(
+        self, name: str, audio_data: bytes, language: str | None = None,
+    ) -> dict[str, object]:
         """Upload an audio file as a new voice sample."""
+        form_data: dict[str, str] = {"name": name}
+        if language is not None:
+            form_data["language"] = language
         resp = await self._client.post(
             f"{self._base_url}/voices",
             files={"file": (f"{name}.wav", audio_data)},
-            data={"name": name},
+            data=form_data,
         )
         resp.raise_for_status()
         result: dict[str, object] = resp.json()
@@ -49,6 +68,20 @@ class ChatterboxRemoteProvider(TTSProvider):
         resp.raise_for_status()
         result: dict[str, object] = resp.json()
         return result
+
+    async def get_languages(self) -> list[str]:
+        """Fetch supported languages from the Chatterbox API."""
+        resp = await self._client.get(f"{self._base_url}/languages", timeout=30.0)
+        resp.raise_for_status()
+        languages: list[str] = resp.json()
+        return languages
+
+    async def get_memory(self) -> dict:
+        """Fetch GPU memory info from the Chatterbox API."""
+        resp = await self._client.get(f"{self._base_url}/memory", timeout=10.0)
+        resp.raise_for_status()
+        data: dict = resp.json()
+        return data
 
     async def cleanup(self) -> None:
         """Close the shared HTTP client."""

@@ -11,6 +11,8 @@ from backend.models import (
     ChatterboxVoice,
     ChatterboxVoicesResponse,
     ConfigResponse,
+    GpuStatusResponse,
+    LanguagesResponse,
     ModelsResponse,
     PiperDownloadRequest,
     PiperDownloadResponse,
@@ -125,6 +127,7 @@ async def get_chatterbox_voices() -> ChatterboxVoicesResponse:
 async def upload_chatterbox_voice(
     file: UploadFile,
     name: str = Form(...),
+    language: str | None = Form(None),
 ) -> ChatterboxUploadResponse:
     s = get_settings()
     from backend.providers.tts.chatterbox_remote import ChatterboxRemoteProvider
@@ -146,7 +149,7 @@ async def upload_chatterbox_voice(
         voice=s.chatterbox_voice,
     )
     try:
-        result = await provider.upload_voice(name, audio_data)
+        result = await provider.upload_voice(name, audio_data, language)
         return ChatterboxUploadResponse(
             success=bool(result.get("success", True)),
             name=name,
@@ -239,3 +242,87 @@ async def get_openai_models(
     except Exception:
         logger.warning("Could not fetch OpenAI-compat models from %s", url)
         return ModelsResponse(models=[])
+
+
+@router.post("/gpu/warmup")
+async def warmup_gpu(service: str = Query("ollama")) -> dict:
+    s = get_settings()
+    ollama_url = s.ollama_url.rstrip("/")
+    model = s.ollama_model
+
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            ps_resp = await client.get(f"{ollama_url}/api/ps")
+            ps_resp.raise_for_status()
+            ps_data = ps_resp.json()
+            loaded = [m["name"] for m in ps_data.get("models", [])]
+            if model in loaded:
+                return {"status": "already_loaded", "model": model}
+    except Exception:
+        logger.warning("Could not check Ollama ps, attempting warmup anyway")
+
+    try:
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            await client.post(
+                f"{ollama_url}/api/chat",
+                json={
+                    "model": model,
+                    "messages": [],
+                    "stream": False,
+                    "keep_alive": "60s",
+                },
+            )
+        return {"status": "warmed_up", "model": model}
+    except Exception as exc:
+        logger.warning("Ollama warmup failed: %s", exc)
+        return {"status": "warmup_failed", "model": model}
+
+
+@router.get("/gpu/status", response_model=GpuStatusResponse)
+async def get_gpu_status() -> GpuStatusResponse:
+    s = get_settings()
+    ollama_info: dict = {}
+    chatterbox_info: dict = {}
+
+    # Ollama: GET /api/ps
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.get(f"{s.ollama_url.rstrip('/')}/api/ps")
+            resp.raise_for_status()
+            ollama_info = resp.json()
+    except Exception:
+        ollama_info = {"error": "unreachable"}
+
+    # Chatterbox: GET /memory
+    try:
+        from backend.providers.tts.chatterbox_remote import ChatterboxRemoteProvider
+
+        provider = ChatterboxRemoteProvider(
+            base_url=s.chatterbox_url, voice=s.chatterbox_voice,
+        )
+        try:
+            chatterbox_info = await provider.get_memory()
+        finally:
+            await provider.cleanup()
+    except Exception:
+        chatterbox_info = {"error": "unreachable"}
+
+    return GpuStatusResponse(ollama=ollama_info, chatterbox=chatterbox_info)
+
+
+@router.get("/chatterbox/languages", response_model=LanguagesResponse)
+async def get_chatterbox_languages() -> LanguagesResponse:
+    s = get_settings()
+    from backend.providers.tts.chatterbox_remote import ChatterboxRemoteProvider
+
+    provider = ChatterboxRemoteProvider(
+        base_url=s.chatterbox_url, voice=s.chatterbox_voice,
+    )
+    try:
+        languages = await provider.get_languages()
+        return LanguagesResponse(languages=languages)
+    except Exception:
+        logger.warning("Could not fetch Chatterbox languages from %s", s.chatterbox_url)
+        return LanguagesResponse(languages=[])
+    finally:
+        await provider.cleanup()

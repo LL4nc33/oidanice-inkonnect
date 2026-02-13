@@ -35,6 +35,7 @@ class OllamaLocalProvider(TranslateProvider):
                         {"role": "user", "content": text},
                     ],
                     "stream": False,
+                    "keep_alive": "30s",
                     "options": {"temperature": 0.3},
                 },
             )

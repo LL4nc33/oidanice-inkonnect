@@ -31,7 +31,7 @@ class PiperLocalProvider(TTSProvider):
         self._voices[name] = voice
         return voice
 
-    async def synthesize(self, text: str, lang: str, voice: str | None = None) -> bytes:
+    async def synthesize(self, text: str, lang: str, voice: str | None = None, **kwargs: object) -> bytes:
         voice_name = voice or self._voice_name
         piper_voice = self._load_voice(voice_name)
 

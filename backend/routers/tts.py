@@ -31,7 +31,14 @@ async def text_to_speech(req: TTSRequest) -> TTSResponse:
     start = time.perf_counter()
     tts_impl, ad_hoc = _resolve_tts(req.tts_provider, req.voice)
     try:
-        audio_bytes = await tts_impl.synthesize(req.text, req.lang, req.voice)
+        audio_bytes = await tts_impl.synthesize(
+            req.text,
+            req.lang,
+            req.voice,
+            exaggeration=req.exaggeration,
+            cfg_weight=req.cfg_weight,
+            temperature=req.temperature,
+        )
         duration_ms = int((time.perf_counter() - start) * 1000)
         audio_b64 = base64.b64encode(audio_bytes).decode()
         return TTSResponse(audio=audio_b64, duration_ms=duration_ms)
