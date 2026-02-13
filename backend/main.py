@@ -11,7 +11,7 @@ from fastapi.responses import FileResponse
 from backend.config import Settings
 from backend.dependencies import init_providers, get_stt, get_tts, get_translate
 from backend.providers import create_stt, create_tts, create_translate
-from backend.routers import stt, tts, translate, pipeline, config
+from backend.routers import stt, tts, translate, pipeline, config, sessions, messages
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -84,6 +84,8 @@ app.include_router(tts.router)
 app.include_router(translate.router)
 app.include_router(pipeline.router)
 app.include_router(config.router)
+app.include_router(sessions.router)
+app.include_router(messages.router)
 
 # Gateway (v1 API for external clients)
 if Settings().gateway_enabled:

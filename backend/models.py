@@ -151,3 +151,57 @@ class BenchmarkResponse(BaseModel):
 class UsageResponse(BaseModel):
     character_count: int
     character_limit: int
+
+
+# --- Chat History Models ---
+
+class SessionCreate(BaseModel):
+    source_lang: str
+    target_lang: str
+    audio_enabled: bool = False
+    title: str | None = None
+    org_id: str | None = None
+
+
+class SessionUpdate(BaseModel):
+    title: str | None = None
+    audio_enabled: bool | None = None
+
+
+class SessionResponse(BaseModel):
+    id: str
+    org_id: str | None = None
+    title: str | None = None
+    source_lang: str
+    target_lang: str
+    audio_enabled: bool
+    message_count: int = 0
+    created_at: str
+    updated_at: str
+    expires_at: str | None = None
+
+
+class SessionListResponse(BaseModel):
+    sessions: list[SessionResponse]
+    total: int
+
+
+class MessageResponse(BaseModel):
+    id: str
+    session_id: str
+    direction: str
+    original_text: str
+    translated_text: str
+    original_lang: str
+    translated_lang: str
+    audio_path: str | None = None
+    stt_ms: int | None = None
+    translate_ms: int | None = None
+    tts_ms: int | None = None
+    model_used: str | None = None
+    created_at: str
+
+
+class MessageListResponse(BaseModel):
+    messages: list[MessageResponse]
+    total: int
