@@ -56,6 +56,20 @@
 - [x] GPU status uses frontend-configured URLs
 - [x] Removed local/remote labels from provider dropdowns
 
+## v0.3.2 -- Settings Dashboard (done)
+
+- [x] Settings page redesign (521 -> 248 lines, modular components)
+- [x] Provider Status Grid (online/offline/unconfigured badges)
+- [x] GPU Monitor (Ollama models + Chatterbox VRAM)
+- [x] Cloud Usage (DeepL/ElevenLabs quota progress bars)
+- [x] Benchmark Widget (last 10 pipeline runs + averages)
+- [x] FilterChip navigation with IntersectionObserver
+- [x] Backend: /api/health, /api/benchmarks/recent, /api/deepl/usage, /api/elevenlabs/usage
+- [x] DeepL translation provider
+- [x] ElevenLabs TTS provider
+- [x] Pipeline benchmark logging (JSONL per day)
+- [x] Configurable Ollama keep_alive and context length
+
 ## v0.4 -- Production
 
 - [ ] End-to-end testing
@@ -63,10 +77,25 @@
 - [ ] Chatterbox Turbo support (paralinguistic tags, emotions)
 - [ ] Streaming TTS (chunked audio playback)
 
-## v0.5 -- Enhanced
+## v0.5 -- Chat History & Semantic Search
+
+- [ ] PostgreSQL + pgvector container (pgvector/pgvector:pg16)
+- [ ] Database layer (asyncpg + SQLAlchemy async ORM + Alembic migrations)
+- [ ] Session CRUD endpoints (/api/sessions)
+- [ ] Message history with pagination (/api/sessions/{id}/messages)
+- [ ] Pipeline integration (auto-save messages with session_id)
+- [ ] Hybrid audio storage (Opus-compressed, optional per session)
+- [ ] User-configurable retention policies (24h / 7d / 30d / 1y / unlimited)
+- [ ] Background cleanup job (expired sessions + audio files)
+- [ ] Embedding provider (nomic-embed-text via Ollama, CPU)
+- [ ] Semantic search across all sessions (/api/search via pgvector)
+- [ ] Chat history UI (Messenger-style, original + translation per turn)
+- [ ] Gateway endpoints for sessions/search (/v1/)
+- [ ] See: docs/plans/CHAT-HISTORY-PLAN.md
+
+## v0.6 -- Enhanced
 
 - [ ] Conversation mode (continuous recording)
 - [ ] WebSocket streaming for real-time transcription
-- [ ] Transcript history / export
 - [ ] Offline mode with cached models
 - [ ] Multi-user support

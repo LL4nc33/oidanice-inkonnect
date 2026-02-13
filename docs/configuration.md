@@ -46,6 +46,31 @@ These settings are configured in the UI and stored in the browser's localStorage
 | ElevenLabs Similarity | Voice similarity boost slider (0.0-1.0) |
 | Auto-Play | Automatically play translation audio after pipeline completes |
 
+## Cloud Provider Tiers
+
+### DeepL
+
+| Tier | Preis | Limit | Registrierung |
+|------|-------|-------|---------------|
+| **Free** | kostenlos | 500.000 Zeichen/Monat | [deepl.com/pro-api](https://www.deepl.com/pro-api) → "DeepL API Free" |
+| **Pro** | ab 4,99€/Monat | unbegrenzt | Gleiche Seite, "DeepL API Pro" |
+
+Bei ~50-100 Zeichen pro Pipeline-Call reicht der Free-Tier fuer ca. 5.000-10.000 Uebersetzungen/Monat.
+
+Keine Kreditkarte noetig fuer den Free-Tier. API Key gibt es direkt im DeepL Dashboard nach Registrierung.
+
+### ElevenLabs
+
+| Tier | Preis | Limit | Registrierung |
+|------|-------|-------|---------------|
+| **Free** | kostenlos | 10.000 Zeichen/Monat | [elevenlabs.io](https://elevenlabs.io) → Sign Up |
+| **Starter** | $5/Monat | 30.000 Zeichen/Monat | Dashboard → Upgrade |
+| **Creator** | $22/Monat | 100.000 Zeichen/Monat | Dashboard → Upgrade |
+
+Bei ~50-100 Zeichen pro TTS-Call reicht der Free-Tier fuer ca. 100-200 Synthesen/Monat (eher zum Testen/Vergleichen).
+
+API Key im ElevenLabs Dashboard unter "Profile + API Key".
+
 ## Model Sizes (Whisper)
 
 | Model | VRAM/RAM | Relative Speed |
@@ -64,6 +89,15 @@ When Ollama and Chatterbox share a GPU:
 - `keep_alive: "30s"` ensures Ollama unloads quickly after translation
 - Chatterbox stays loaded permanently
 - When using OpenAI-compatible translation or DeepL, no Ollama VRAM is used
+
+## API Gateway
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `GATEWAY_ENABLED` | `true` | Enable `/v1/*` gateway endpoints |
+| `GATEWAY_API_KEYS` | `` | Comma-separated API keys (empty = no auth) |
+| `GATEWAY_RATE_LIMIT` | `60` | Requests per minute per key |
+| `GATEWAY_MAX_AUDIO_MB` | `25` | Max upload size in MB |
 
 ## Benchmarks
 
