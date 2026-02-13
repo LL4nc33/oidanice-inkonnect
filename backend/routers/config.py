@@ -250,15 +250,16 @@ async def get_openai_models(
 @router.post("/gpu/warmup")
 async def warmup_gpu(
     service: str = Query("ollama"),
-    url: str | None = Query(None),
+    ollama_url: str | None = Query(None),
+    keep_alive: str | None = Query(None),
 ) -> dict:
     s = get_settings()
-    ollama_url = (url or s.ollama_url).rstrip("/")
+    effective_url = (ollama_url or s.ollama_url).rstrip("/")
     model = s.ollama_model
 
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
-            ps_resp = await client.get(f"{ollama_url}/api/ps")
+            ps_resp = await client.get(f"{effective_url}/api/ps")
             ps_resp.raise_for_status()
             ps_data = ps_resp.json()
             loaded = [m["name"] for m in ps_data.get("models", [])]
@@ -270,12 +271,12 @@ async def warmup_gpu(
     try:
         async with httpx.AsyncClient(timeout=60.0) as client:
             await client.post(
-                f"{ollama_url}/api/chat",
+                f"{effective_url}/api/chat",
                 json={
                     "model": model,
                     "messages": [],
                     "stream": False,
-                    "keep_alive": "60s",
+                    "keep_alive": keep_alive or "3m",
                 },
             )
         return {"status": "warmed_up", "model": model}

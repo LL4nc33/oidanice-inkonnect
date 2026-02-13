@@ -108,6 +108,8 @@ export async function pipeline(
   synthesisParams?: SynthesisParams,
   chatterboxUrl?: string,
   ollamaUrl?: string,
+  ollamaKeepAlive?: string,
+  ollamaContextLength?: number,
 ): Promise<PipelineResponse> {
   const form = new FormData()
   form.append('file', audio, 'recording.webm')
@@ -126,6 +128,8 @@ export async function pipeline(
   if (synthesisParams?.temperature != null) params.set('temperature', String(synthesisParams.temperature))
   if (chatterboxUrl) params.set('chatterbox_url', chatterboxUrl)
   if (ollamaUrl) params.set('ollama_url', ollamaUrl)
+  if (ollamaKeepAlive) params.set('ollama_keep_alive', ollamaKeepAlive)
+  if (ollamaContextLength) params.set('ollama_context_length', String(ollamaContextLength))
   return request(`/pipeline?${params}`, { method: 'POST', body: form })
 }
 
@@ -208,6 +212,9 @@ export async function getGpuStatus(ollamaUrl?: string, chatterboxUrl?: string): 
   return request(`/gpu/status${qs ? `?${qs}` : ''}`)
 }
 
-export async function warmupGpu(service: string = 'ollama'): Promise<void> {
-  await request(`/gpu/warmup?service=${encodeURIComponent(service)}`, { method: 'POST' })
+export async function warmupGpu(service: string = 'ollama', ollamaUrl?: string, keepAlive?: string): Promise<void> {
+  const params = new URLSearchParams({ service })
+  if (ollamaUrl) params.set('ollama_url', ollamaUrl)
+  if (keepAlive) params.set('keep_alive', keepAlive)
+  await request(`/gpu/warmup?${params}`, { method: 'POST' })
 }

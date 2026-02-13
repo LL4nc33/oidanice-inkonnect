@@ -35,6 +35,10 @@ interface SettingsProps {
   onChatterboxTemperatureChange: (value: number) => void
   autoPlay: boolean
   onAutoPlayChange: (enabled: boolean) => void
+  ollamaKeepAlive: string
+  onOllamaKeepAliveChange: (value: string) => void
+  ollamaContextLength: string
+  onOllamaContextLengthChange: (value: string) => void
 }
 
 function RangeSlider({ label, value, min, max, step, onChange }: {
@@ -86,6 +90,8 @@ export function Settings({
   chatterboxCfgWeight, onChatterboxCfgWeightChange,
   chatterboxTemperature, onChatterboxTemperatureChange,
   autoPlay, onAutoPlayChange,
+  ollamaKeepAlive, onOllamaKeepAliveChange,
+  ollamaContextLength, onOllamaContextLengthChange,
 }: SettingsProps) {
   const [config, setConfig] = useState<BackendConfig | null>(null)
   const [gpuStatus, setGpuStatus] = useState<GpuStatus | null>(null)
@@ -307,6 +313,18 @@ export function Settings({
                 options={ollamaModels}
                 placeholder="Search models..."
                 onChange={onOllamaModelChange}
+              />
+              <Input
+                label="Keep Alive"
+                placeholder="3m"
+                value={ollamaKeepAlive}
+                onChange={(e) => onOllamaKeepAliveChange(e.target.value)}
+              />
+              <Input
+                label="Context Length"
+                placeholder="Default (model-specific)"
+                value={ollamaContextLength}
+                onChange={(e) => onOllamaContextLengthChange(e.target.value)}
               />
             </>
           )}

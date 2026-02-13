@@ -16,11 +16,16 @@ async def translate_text(
     api_key: str | None = Query(None),
     model: str | None = Query(None),
     ollama_url: str | None = Query(None),
+    ollama_keep_alive: str | None = Query(None),
+    ollama_context_length: int | None = Query(None),
 ) -> TranslateResponse:
     start = time.perf_counter()
     translator, ad_hoc = resolve_translate(provider, api_url, api_key, model, ollama_url)
     try:
-        translated = await translator.translate(req.text, req.source, req.target, model)
+        translated = await translator.translate(
+            req.text, req.source, req.target, model,
+            keep_alive=ollama_keep_alive, num_ctx=ollama_context_length,
+        )
     finally:
         if ad_hoc:
             await translator.cleanup()

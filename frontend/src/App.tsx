@@ -48,6 +48,8 @@ export function App() {
           chatterboxCfgWeight={settings.chatterboxCfgWeight}
           chatterboxTemperature={settings.chatterboxTemperature}
           autoPlay={settings.autoPlay}
+          ollamaKeepAlive={settings.ollamaKeepAlive}
+          ollamaContextLength={settings.ollamaContextLength}
           onSourceChange={(lang) => update({ sourceLang: lang })}
           onTargetChange={(lang) => update({ targetLang: lang })}
         />
@@ -83,6 +85,10 @@ export function App() {
           onChatterboxTemperatureChange={(v) => update({ chatterboxTemperature: v })}
           autoPlay={settings.autoPlay}
           onAutoPlayChange={(v) => update({ autoPlay: v })}
+          ollamaKeepAlive={settings.ollamaKeepAlive}
+          onOllamaKeepAliveChange={(v) => update({ ollamaKeepAlive: v })}
+          ollamaContextLength={settings.ollamaContextLength}
+          onOllamaContextLengthChange={(v) => update({ ollamaContextLength: v })}
         />
       )}
     </Layout>

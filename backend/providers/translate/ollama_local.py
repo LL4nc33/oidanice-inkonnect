@@ -19,11 +19,20 @@ class OllamaLocalProvider(TranslateProvider):
         self._base_url = base_url.rstrip("/")
         self._client = httpx.AsyncClient(timeout=120.0)
 
-    async def translate(self, text: str, source: str, target: str, model: str | None = None) -> str:
+    async def translate(
+        self, text: str, source: str, target: str,
+        model: str | None = None, **kwargs: object,
+    ) -> str:
         if not text.strip():
             return ""
 
         system = SYSTEM_PROMPT.format(source=source, target=target)
+
+        keep_alive = str(kwargs.get("keep_alive") or "3m")
+        options: dict[str, object] = {"temperature": 0.3}
+        num_ctx = kwargs.get("num_ctx")
+        if num_ctx is not None:
+            options["num_ctx"] = int(str(num_ctx))
 
         try:
             response = await self._client.post(
@@ -35,8 +44,8 @@ class OllamaLocalProvider(TranslateProvider):
                         {"role": "user", "content": text},
                     ],
                     "stream": False,
-                    "keep_alive": "30s",
-                    "options": {"temperature": 0.3},
+                    "keep_alive": keep_alive,
+                    "options": options,
                 },
             )
             response.raise_for_status()

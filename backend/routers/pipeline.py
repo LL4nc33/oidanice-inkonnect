@@ -27,6 +27,8 @@ async def full_pipeline(
     api_key: str | None = Query(None),
     chatterbox_url: str | None = Query(None),
     ollama_url: str | None = Query(None),
+    ollama_keep_alive: str | None = Query(None),
+    ollama_context_length: int | None = Query(None),
 ) -> PipelineResponse:
     start = time.perf_counter()
 
@@ -40,7 +42,10 @@ async def full_pipeline(
     # 2. Translate
     translator, ad_hoc = resolve_translate(provider, api_url, api_key, model, ollama_url)
     try:
-        translated = await translator.translate(text, detected_lang, target_lang, model)
+        translated = await translator.translate(
+            text, detected_lang, target_lang, model,
+            keep_alive=ollama_keep_alive, num_ctx=ollama_context_length,
+        )
     finally:
         if ad_hoc:
             await translator.cleanup()

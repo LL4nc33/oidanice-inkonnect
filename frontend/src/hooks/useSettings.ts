@@ -18,6 +18,8 @@ interface AppSettings {
   chatterboxCfgWeight: number
   chatterboxTemperature: number
   autoPlay: boolean
+  ollamaKeepAlive: string
+  ollamaContextLength: string
 }
 
 const STORAGE_KEY = 'inkonnect-settings'
@@ -40,6 +42,8 @@ const DEFAULTS: AppSettings = {
   chatterboxCfgWeight: 0.5,
   chatterboxTemperature: 0.8,
   autoPlay: true,
+  ollamaKeepAlive: '3m',
+  ollamaContextLength: '',
 }
 
 function load(): AppSettings {
