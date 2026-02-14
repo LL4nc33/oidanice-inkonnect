@@ -32,6 +32,7 @@
                                       │ ElevenLabs  │
                                       │  (cloud)    │
                                       └─────────────┘
+```
 
 ### Translation Model Benchmark Results
 
@@ -130,20 +131,49 @@ When Ollama and Chatterbox share a GPU (e.g. RTX 2060 12GB):
 
 ## Frontend Architecture
 
-- `App.tsx` -- Layout shell with page routing, settings state management
-- `pages/Home.tsx` -- State machine (idle → recording → processing → result/error), keyboard shortcuts
-- `pages/Settings.tsx` -- Provider config, voice management, synthesis parameters, backend info (active providers only)
-- `components/` -- Reusable UI components built on ink-ui
-  - `PipelineRecorder.tsx` -- Record with timer, auto-process on stop, auto-start for "new recording"
-  - `TranscriptDisplay.tsx` -- Original + translated text with copy-to-clipboard, per-step timing display
-  - `SpeakButton.tsx` -- Audio playback with playing state and download (supports WAV and MP3 via `audio_format`)
+Messenger-style layout with sidebar (session list) and main chat area.
+
+```
+┌──────────────────────────────────────────┐
+│  [=] inkonnect          [settings] [dark] │
+├────────────┬─────────────────────────────┤
+│  Sidebar   │  Chat Area                  │
+│  (w-64)    │                             │
+│ [ + new ]  │  SessionBar / Quick-Translate│
+│ search...  │  LanguageSelector           │
+│ Session A  │  MessageFeed                │
+│ Session B  │  PipelineRecorder           │
+│ Session C  │  Result / Error             │
+├────────────┴─────────────────────────────┤
+│  footer                                   │
+└──────────────────────────────────────────┘
+```
+
+- **Desktop**: Sidebar always visible (hidden via `md:block`)
+- **Mobile**: Sidebar as overlay with backdrop, hamburger toggle `[=]`
+- **Without session**: Quick-Translate mode (no logging, no MessageFeed)
+- **With session**: Conversation mode (messages logged, MessageFeed visible)
+
+### Key Files
+
+- `App.tsx` -- Layout shell with sidebar, session management, mobile toggle, page routing (home/settings)
+- `pages/Home.tsx` -- Two modes: Quick-Translate (idle) vs. Conversation (active session). State machine (idle → recording → processing → result/error)
+- `pages/Settings.tsx` -- Provider config, voice management, synthesis parameters
+- `components/` -- UI components built on `@oidanice/ink-ui`
+  - `ChatSidebar.tsx` -- Session list with search, new-session button, delete
+  - `SidebarSessionItem.tsx` -- Compact session item with active highlight, timeAgo
+  - `SessionBar.tsx` -- Active session header with title, message count, end button
+  - `MessageFeed.tsx` -- Scrollable message list
+  - `MessageBubble.tsx` -- Single message with original/translated text, audio playback, copy
+  - `PipelineRecorder.tsx` -- Record with timer, auto-process on stop
+  - `TranscriptDisplay.tsx` -- Original + translated text with per-step timing
+  - `SpeakButton.tsx` -- Audio playback (WAV/MP3 via `audio_format`)
   - `ResultActions.tsx` -- Retry pipeline, new recording
-  - `ErrorCard.tsx` -- Error display with retry action
-  - `VoiceRecorder.tsx` -- Browser microphone recording with preview (used by ChatterboxVoiceManager)
+  - `ErrorCard.tsx` -- Error display with retry
   - `ChatterboxVoiceManager.tsx` -- Voice upload, recording, deletion
   - `SearchSelect.tsx` -- Filterable dropdown for voices/models
-- `hooks/` -- `useVoiceRecorder` (timer, preview), `useSettings` (localStorage), `useClipboard` (copy feedback), `useKeyboardShortcut` (Space to record)
-- `api/inkonnect.ts` -- Typed fetch wrapper for all backend endpoints
+- `hooks/` -- `useSession` (create/load/clear), `useMessages` (append/fetch/clear), `useSettings` (localStorage), `useVoiceRecorder` (timer, preview), `useClipboard` (copy feedback), `useKeyboardShortcut` (Space to record)
+- `api/inkonnect.ts` -- Typed fetch wrapper for all backend endpoints including chat history (sessions, messages, search)
 
 ## Backend Structure
 

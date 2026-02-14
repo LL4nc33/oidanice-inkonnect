@@ -31,10 +31,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         tts_provider = None
     translate_provider = create_translate(settings)
 
-    init_providers(settings, stt_provider, tts_provider, translate_provider)
     logger.info("Providers ready (tts=%s)", "ok" if tts_provider else "disabled")
 
     # Initialize database if history is enabled
+    embedding_provider = None
     if settings.history_enabled:
         try:
             from backend.database.connection import init_db, get_engine
@@ -50,8 +50,15 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             # Start cleanup background task
             from backend.database.cleanup import cleanup_loop
             asyncio.create_task(cleanup_loop())
+            # Create embedding provider singleton
+            from backend.providers.embedding.ollama_embed import OllamaEmbeddingProvider
+            embedding_provider = OllamaEmbeddingProvider(
+                base_url=settings.embedding_url, model=settings.embedding_model
+            )
         except Exception as e:
             logger.warning("Database initialization failed: %s (history will be disabled)", e)
+
+    init_providers(settings, stt_provider, tts_provider, translate_provider, embedding_provider)
 
     yield
 
@@ -60,6 +67,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     if tts_provider:
         await get_tts().cleanup()
     await get_translate().cleanup()
+
+    if embedding_provider:
+        await embedding_provider.cleanup()
 
     # Close database
     if settings.history_enabled:

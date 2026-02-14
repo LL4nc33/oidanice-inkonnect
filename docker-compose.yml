@@ -7,7 +7,7 @@ services:
       - DEVICE=${DEVICE:-auto}
       - WHISPER_MODEL=${WHISPER_MODEL:-small}
       - PIPER_VOICE=${PIPER_VOICE:-de_DE-thorsten-high}
-      - OLLAMA_MODEL=${OLLAMA_MODEL:-ministral-3:3b}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-gemma3:4b}
       - OLLAMA_URL=${OLLAMA_URL:-http://llm00.node:11434}
       - CHATTERBOX_URL=${CHATTERBOX_URL:-http://gpu00.node:4123}
       - CHATTERBOX_VOICE=${CHATTERBOX_VOICE:-default}
