@@ -1,4 +1,4 @@
-const CACHE_NAME = 'inkonnect-v2';
+const CACHE_NAME = 'dolmtschr-v1';
 const STATIC_ASSETS = ['/', '/index.html', '/manifest.json', '/favicon.svg', '/icon-192.svg', '/icon-512.svg'];
 
 self.addEventListener('install', (event) => {

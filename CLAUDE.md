@@ -1,4 +1,4 @@
-# inkonnect
+# dolmtschr
 
 ## Projekt
 Barrierefreie Kommunikations-PWA: Sprache ↔ Text ↔ Sprache mit optionaler Übersetzung.
@@ -10,7 +10,7 @@ Barrierefreie Kommunikations-PWA: Sprache ↔ Text ↔ Sprache mit optionaler Ü
 ## Struktur
 - `ink-ui/` - @oidanice/ink-ui Design System (lokaler Klon, wird per `npm run build` gebaut)
 - `frontend/` - React PWA mit ink-ui
-  - `src/api/` - API-Client (`inkonnect.ts`)
+  - `src/api/` - API-Client (`dolmtschr.ts`)
   - `src/hooks/` - Custom Hooks (`useSettings.ts`, `useVoiceRecorder.ts`, `useClipboard.ts`, `useKeyboardShortcut.ts`)
   - `src/pages/` - Seiten (`Home.tsx`, `Settings.tsx`)
   - `src/components/` - UI-Komponenten (`PipelineRecorder`, `TranscriptDisplay`, `SpeakButton`, `ErrorCard`, `ResultActions`)

@@ -46,7 +46,7 @@ ollama list
 ## Project Structure
 
 ```
-inkonnect/
+dolmtschr/
 ├── backend/
 │   ├── main.py              # FastAPI app
 │   ├── config.py             # Pydantic settings

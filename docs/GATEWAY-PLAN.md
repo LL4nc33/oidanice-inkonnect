@@ -1,12 +1,12 @@
-# InKonnect API Gateway – Implementierungsplan
+# Dolmtschr API Gateway – Implementierungsplan
 
-Erstelle ein **API Gateway** als neue Schicht ueber dem bestehenden InKonnect-Backend. Das Gateway exponiert die Voice-Pipeline (STT → Translate → TTS) als wiederverwendbaren Service fuer externe Programme.
+Erstelle ein **API Gateway** als neue Schicht ueber dem bestehenden Dolmtschr-Backend. Das Gateway exponiert die Voice-Pipeline (STT → Translate → TTS) als wiederverwendbaren Service fuer externe Programme.
 
 ---
 
 ## Kontext
 
-InKonnect ist eine Voice-Translation-PWA mit Provider-Abstraction-Layer:
+Dolmtschr ist eine Voice-Translation-PWA mit Provider-Abstraction-Layer:
 - **STT:** faster-whisper (lokal)
 - **TTS:** Piper (lokal) + Chatterbox Multilingual (remote, 23 Sprachen)
 - **Translate:** Ollama (lokal) + OpenAI-compat
@@ -130,7 +130,7 @@ if settings.gateway_enabled:
     app.include_router(gateway_router)
 ```
 
-Bestehende `/api/*` Endpoints bleiben vollstaendig erhalten fuer das InKonnect-Frontend.
+Bestehende `/api/*` Endpoints bleiben vollstaendig erhalten fuer das Dolmtschr-Frontend.
 
 ### Task 3.2: Tests
 
@@ -150,6 +150,6 @@ Bestehende `/api/*` Endpoints bleiben vollstaendig erhalten fuer das InKonnect-F
 
 1. **Kein Code duplizieren** – Gateway nutzt dieselben Provider-Instanzen und den shared Resolver
 2. **Audio-Responses** – Raw Audio statt Base64 fuer externe Clients (weniger Overhead)
-3. **OpenAI-Kompatibilitaet** – Jedes Tool das OpenAI Audio API kann, soll auch InKonnect nutzen koennen
+3. **OpenAI-Kompatibilitaet** – Jedes Tool das OpenAI Audio API kann, soll auch Dolmtschr nutzen koennen
 4. **Bestehende Endpoints nicht brechen** – `/api/*` bleibt unangetastet
 5. **Minimal Dependencies** – Kein Redis/DB fuer Rate Limiting, alles In-Memory

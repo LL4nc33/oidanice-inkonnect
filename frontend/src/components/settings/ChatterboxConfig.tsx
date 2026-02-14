@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Input, Divider } from '@oidanice/ink-ui'
-import { getChatterboxVoices, ChatterboxVoice } from '../../api/inkonnect'
+import { getChatterboxVoices, ChatterboxVoice } from '../../api/dolmtschr'
 import { SearchSelect } from '../SearchSelect'
 import { ChatterboxVoiceManager } from '../ChatterboxVoiceManager'
 import { RangeSlider } from './RangeSlider'

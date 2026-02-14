@@ -135,7 +135,7 @@ Messenger-style layout with sidebar (session list) and main chat area.
 
 ```
 ┌──────────────────────────────────────────┐
-│  [=] inkonnect          [settings] [dark] │
+│  [=] dolmtschr          [settings] [dark] │
 ├────────────┬─────────────────────────────┤
 │  Sidebar   │  Chat Area                  │
 │  (w-64)    │                             │
@@ -173,7 +173,7 @@ Messenger-style layout with sidebar (session list) and main chat area.
   - `ChatterboxVoiceManager.tsx` -- Voice upload, recording, deletion
   - `SearchSelect.tsx` -- Filterable dropdown for voices/models
 - `hooks/` -- `useSession` (create/load/clear), `useMessages` (append/fetch/clear), `useSettings` (localStorage), `useVoiceRecorder` (timer, preview), `useClipboard` (copy feedback), `useKeyboardShortcut` (Space to record)
-- `api/inkonnect.ts` -- Typed fetch wrapper for all backend endpoints including chat history (sessions, messages, search)
+- `api/dolmtschr.ts` -- Typed fetch wrapper for all backend endpoints including chat history (sessions, messages, search)
 
 ## Backend Structure
 

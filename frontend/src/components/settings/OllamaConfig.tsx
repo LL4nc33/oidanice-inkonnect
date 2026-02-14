@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Input } from '@oidanice/ink-ui'
-import { getOllamaModels } from '../../api/inkonnect'
+import { getOllamaModels } from '../../api/dolmtschr'
 import { SearchSelect } from '../SearchSelect'
 
 interface OllamaConfigProps {

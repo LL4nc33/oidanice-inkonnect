@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Input } from '@oidanice/ink-ui'
-import { getOpenAIModels } from '../../api/inkonnect'
+import { getOpenAIModels } from '../../api/dolmtschr'
 import { SearchSelect } from '../SearchSelect'
 
 interface OpenAIConfigProps {

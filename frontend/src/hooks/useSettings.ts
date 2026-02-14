@@ -29,7 +29,18 @@ interface AppSettings {
   elevenlabsSimilarity: number
 }
 
-const STORAGE_KEY = 'inkonnect-settings'
+const OLD_STORAGE_KEY = 'inkonnect-settings'
+const STORAGE_KEY = 'dolmtschr-settings'
+
+function migrateSettings(): void {
+  const old = localStorage.getItem(OLD_STORAGE_KEY)
+  if (old && !localStorage.getItem(STORAGE_KEY)) {
+    localStorage.setItem(STORAGE_KEY, old)
+    localStorage.removeItem(OLD_STORAGE_KEY)
+  }
+}
+
+migrateSettings()
 
 const DEFAULTS: AppSettings = {
   sourceLang: '',

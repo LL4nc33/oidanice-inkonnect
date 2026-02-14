@@ -1,6 +1,6 @@
 {
-  "name": "inkonnect",
-  "short_name": "inkonnect",
+  "name": "Dolmtschr",
+  "short_name": "Dolmtschr",
   "description": "Barrierefreie Kommunikations-PWA: Sprache \u2194 Text \u2194 Sprache",
   "start_url": "/",
   "scope": "/",

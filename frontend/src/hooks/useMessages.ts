@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { MessageResponse, getMessages } from '../api/inkonnect'
+import { MessageResponse, getMessages } from '../api/dolmtschr'
 
 export function useMessages() {
   const [messages, setMessages] = useState<MessageResponse[]>([])

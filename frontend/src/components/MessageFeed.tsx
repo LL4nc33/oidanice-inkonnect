@@ -1,4 +1,4 @@
-import { MessageResponse } from '../api/inkonnect'
+import { MessageResponse } from '../api/dolmtschr'
 import { MessageBubble } from './MessageBubble'
 
 interface MessageFeedProps {

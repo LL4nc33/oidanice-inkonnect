@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Input, Select, Button, Divider } from '@oidanice/ink-ui'
-import { uploadChatterboxVoice, deleteChatterboxVoice, getChatterboxLanguages } from '../api/inkonnect'
+import { uploadChatterboxVoice, deleteChatterboxVoice, getChatterboxLanguages } from '../api/dolmtschr'
 import { VoiceRecorder } from './VoiceRecorder'
 
 interface ChatterboxVoiceManagerProps {

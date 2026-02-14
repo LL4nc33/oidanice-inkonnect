@@ -1,4 +1,4 @@
-# InKonnect Chat History & Semantic Search – Implementation Plan
+# Dolmtschr Chat History & Semantic Search – Implementation Plan
 
 ## Overview
 
@@ -186,15 +186,15 @@ The pipeline response remains unchanged – chat history is a side-effect, not a
   postgres:
     image: pgvector/pgvector:pg16
     environment:
-      POSTGRES_DB: inkonnect
-      POSTGRES_USER: inkonnect
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-inkonnect_dev}
+      POSTGRES_DB: dolmtschr
+      POSTGRES_USER: dolmtschr
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dolmtschr_dev}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U inkonnect"]
+      test: ["CMD-SHELL", "pg_isready -U dolmtschr"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -204,7 +204,7 @@ The pipeline response remains unchanged – chat history is a side-effect, not a
 
 ```python
 # Database
-database_url: str = "postgresql+asyncpg://inkonnect:inkonnect_dev@localhost:5432/inkonnect"
+database_url: str = "postgresql+asyncpg://dolmtschr:dolmtschr_dev@localhost:5432/dolmtschr"
 
 # Chat History
 history_enabled: bool = True

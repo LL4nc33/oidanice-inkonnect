@@ -1,4 +1,4 @@
-import { HealthProviderInfo } from '../../api/inkonnect'
+import { HealthProviderInfo } from '../../api/dolmtschr'
 import { ProviderStatusCard } from './ProviderStatusCard'
 
 type ProviderStatus = 'online' | 'offline' | 'unconfigured'

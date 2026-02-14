@@ -110,13 +110,13 @@ async def list_models(
 
     s = get_settings()
     models = [
-        ModelObject(id=f"whisper-{s.whisper_model}", owned_by="inkonnect"),
-        ModelObject(id="piper", owned_by="inkonnect"),
+        ModelObject(id=f"whisper-{s.whisper_model}", owned_by="dolmtschr"),
+        ModelObject(id="piper", owned_by="dolmtschr"),
     ]
 
     if isinstance(get_tts(), ChatterboxRemoteProvider) or s.chatterbox_url:
-        models.append(ModelObject(id="chatterbox", owned_by="inkonnect"))
-        models.append(ModelObject(id="chatterbox-multilingual", owned_by="inkonnect"))
+        models.append(ModelObject(id="chatterbox", owned_by="dolmtschr"))
+        models.append(ModelObject(id="chatterbox-multilingual", owned_by="dolmtschr"))
 
     return ModelsListResponse(data=models)
 

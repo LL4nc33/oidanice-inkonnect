@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-InKonnect Translation Benchmark - Chatterbox Multilingual Edition
+Dolmtschr Translation Benchmark - Chatterbox Multilingual Edition
 Tests all 23 Chatterbox-supported languages across 4 LLM candidates.
 
 Usage:
@@ -242,7 +242,7 @@ def check_ollama(url):
 
 # ── Main ──────────────────────────────────────────────────────────────
 def main():
-    p = argparse.ArgumentParser(description="InKonnect Chatterbox Language Benchmark")
+    p = argparse.ArgumentParser(description="Dolmtschr Chatterbox Language Benchmark")
     p.add_argument("--ollama-url", default="http://localhost:11434")
     p.add_argument("--models", nargs="+", default=DEFAULT_MODELS)
     p.add_argument("--langs", nargs="+", default=None)

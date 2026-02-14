@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Input, Button, Divider } from '@oidanice/ink-ui'
-import { getPiperVoices, downloadPiperVoice } from '../../api/inkonnect'
+import { getPiperVoices, downloadPiperVoice } from '../../api/dolmtschr'
 import { SearchSelect } from '../SearchSelect'
 
 interface PiperConfigProps {

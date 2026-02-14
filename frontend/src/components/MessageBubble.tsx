@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react'
 import { Card, Button, Divider } from '@oidanice/ink-ui'
-import { MessageResponse, getMessageAudioUrl } from '../api/inkonnect'
+import { MessageResponse, getMessageAudioUrl } from '../api/dolmtschr'
 import { useClipboard } from '../hooks/useClipboard'
 
 interface MessageBubbleProps {

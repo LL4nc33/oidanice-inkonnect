@@ -1,5 +1,5 @@
 import { Card, Progress, Button } from '@oidanice/ink-ui'
-import { GpuStatus } from '../../api/inkonnect'
+import { GpuStatus } from '../../api/dolmtschr'
 
 interface GpuMonitorProps {
   gpuStatus: GpuStatus | null

@@ -24,7 +24,7 @@ class SpeechRequest(BaseModel):
 class ModelObject(BaseModel):
     id: str
     object: str = "model"
-    owned_by: str = "inkonnect"
+    owned_by: str = "dolmtschr"
 
 
 class ModelsListResponse(BaseModel):

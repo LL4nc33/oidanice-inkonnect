@@ -93,7 +93,37 @@
 - [ ] Gateway endpoints for sessions/search (/v1/)
 - [ ] See: docs/plans/CHAT-HISTORY-PLAN.md
 
-## v0.6 -- Enhanced
+## v0.6 -- Industry Profiles
+
+- [ ] Profile registry (medical, ngo, hotel, government, retail, education)
+- [ ] Domain-specific system prompts for translation LLM
+- [ ] System prompt injection in Ollama + OpenAI-compat providers
+- [ ] Profile Switcher in Settings (card grid)
+- [ ] Quick Language Chips on Home page (per-profile language pairs)
+- [ ] Profile badge indicator on Home page
+- [ ] Pipeline integration (profile_id → system_prompt → translator)
+- [ ] Session/Message profile_id tracking
+- [ ] Gateway: /v1/profiles + profile_id in /v1/pipeline
+- [ ] See: docs/plans/INDUSTRY-PROFILES-PLAN.md
+
+## v0.7 -- Rebrand & UI Redesign
+
+- [ ] Register dolmtschr.com + dolmtschr.at domains
+- [ ] Codebase rebrand (dolmtschr → dolmtschr)
+- [ ] Big Record Button (animated, centered, mic icon)
+- [ ] Language Selector with flags + swap animation
+- [ ] Audio Waveform Visualizer (real-time recording feedback)
+- [ ] Chat Bubble layout (replaces TranscriptDisplay)
+- [ ] Auto-Session (first recording auto-creates session)
+- [ ] Quick Language Chips (profile-aware)
+- [ ] Split-Screen / Two-Person Mode (face-to-face)
+- [ ] Walkie-Talkie hold-to-talk mode
+- [ ] Quick Phrases per profile
+- [ ] Service Status indicator in header
+- [ ] Brand assets (logo, favicon, PWA icons, OG image)
+- [ ] See: docs/plans/REBRAND-PLAN.md, docs/plans/UI-REDESIGN-PLAN.md
+
+## v0.8 -- Enhanced
 
 - [ ] Conversation mode (continuous recording)
 - [ ] WebSocket streaming for real-time transcription

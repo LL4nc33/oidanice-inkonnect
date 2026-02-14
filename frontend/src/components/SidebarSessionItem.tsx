@@ -1,5 +1,5 @@
 import { Button } from '@oidanice/ink-ui'
-import { SessionResponse } from '../api/inkonnect'
+import { SessionResponse } from '../api/dolmtschr'
 
 interface SidebarSessionItemProps {
   session: SessionResponse

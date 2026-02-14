@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Card, Progress } from '@oidanice/ink-ui'
-import { getDeepLUsage, getElevenLabsUsage, UsageResponse } from '../../api/inkonnect'
+import { getDeepLUsage, getElevenLabsUsage, UsageResponse } from '../../api/dolmtschr'
 
 interface CloudUsageProps {
   deepLKey: string

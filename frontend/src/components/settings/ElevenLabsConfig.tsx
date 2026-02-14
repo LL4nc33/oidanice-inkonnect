@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Input, Select } from '@oidanice/ink-ui'
-import { getElevenLabsVoices, ElevenLabsVoice } from '../../api/inkonnect'
+import { getElevenLabsVoices, ElevenLabsVoice } from '../../api/dolmtschr'
 import { SearchSelect } from '../SearchSelect'
 import { RangeSlider } from './RangeSlider'
 

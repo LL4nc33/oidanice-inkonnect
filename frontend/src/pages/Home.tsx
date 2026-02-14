@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react'
 import { Divider, Progress } from '@oidanice/ink-ui'
-import { pipeline, ProviderOptions, warmupGpu, SynthesisParams, ElevenLabsParams, MessageResponse } from '../api/inkonnect'
+import { pipeline, ProviderOptions, warmupGpu, SynthesisParams, ElevenLabsParams, MessageResponse } from '../api/dolmtschr'
 import { PipelineRecorder } from '../components/PipelineRecorder'
 import { TranscriptDisplay } from '../components/TranscriptDisplay'
 import { SpeakButton } from '../components/SpeakButton'

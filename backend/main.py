@@ -83,7 +83,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 _version_file = Path(__file__).resolve().parent.parent / "VERSION"
 _version = _version_file.read_text().strip() if _version_file.exists() else "0.0.0"
 
-app = FastAPI(title="inkonnect", version=_version, lifespan=lifespan)
+app = FastAPI(title="dolmtschr", version=_version, lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

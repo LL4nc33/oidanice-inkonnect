@@ -1,5 +1,5 @@
 """
-InKonnect Translation Model Benchmark
+Dolmtschr Translation Model Benchmark
 ======================================
 Vergleicht Uebersetzungsqualitaet von LLMs via Ollama API.
 Testet: Gemma 3:4b, Ministral 3:8b, Qwen 2.5:7b
@@ -224,7 +224,7 @@ SUBSEP = "-" * 100
 
 def print_header():
     print(f"\n{SEPARATOR}")
-    print(f"  InKonnect Translation Benchmark")
+    print(f"  Dolmtschr Translation Benchmark")
     print(f"  {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"  Models: {', '.join(MODELS)}")
     print(f"  Test sentences: {len(TEST_SENTENCES)}")
@@ -272,7 +272,7 @@ def print_summary(all_durations):
 # ============================================================
 
 def main():
-    parser = argparse.ArgumentParser(description="InKonnect Translation Benchmark")
+    parser = argparse.ArgumentParser(description="Dolmtschr Translation Benchmark")
     parser.add_argument("--ollama-url", default="http://localhost:11434", help="Ollama API URL")
     parser.add_argument("--models", nargs="+", default=None, help="Override models to test")
     args = parser.parse_args()

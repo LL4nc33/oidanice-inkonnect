@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     gateway_max_audio_mb: int = 25      # max upload size in MB
 
     # Database
-    database_url: str = "postgresql+asyncpg://inkonnect:inkonnect_dev@localhost:5432/inkonnect"
+    database_url: str = "postgresql+asyncpg://dolmtschr:dolmtschr_dev@localhost:5432/dolmtschr"
 
     # Chat History
     history_enabled: bool = True

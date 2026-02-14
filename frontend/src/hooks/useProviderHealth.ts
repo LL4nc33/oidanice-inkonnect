@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { getProviderHealth, getGpuStatus, HealthResponse, GpuStatus } from '../api/inkonnect'
+import { getProviderHealth, getGpuStatus, HealthResponse, GpuStatus } from '../api/dolmtschr'
 
 interface UseProviderHealthResult {
   providers: HealthResponse['providers'] | null

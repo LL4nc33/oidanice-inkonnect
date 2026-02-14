@@ -11,4 +11,7 @@ models/
 .serena/
 .playwright-mcp/
 workflow/
+memory/
+docs/DEVLOG.md
+docs/decisions/
 benchmarks/

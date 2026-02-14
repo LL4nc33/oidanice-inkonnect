@@ -3,7 +3,7 @@ import { Layout, DarkModeToggle, InstallPrompt, Button } from '@oidanice/ink-ui'
 import { useSettings } from './hooks/useSettings'
 import { useSession } from './hooks/useSession'
 import { useMessages } from './hooks/useMessages'
-import { getMessages, listSessions, deleteSession, SessionResponse } from './api/inkonnect'
+import { getMessages, listSessions, deleteSession, SessionResponse } from './api/dolmtschr'
 import { Home } from './pages/Home'
 import { Settings } from './pages/Settings'
 import { ChatSidebar } from './components/ChatSidebar'
@@ -99,7 +99,7 @@ export function App() {
             [=]
           </button>
         }
-        title="inkonnect"
+        title="dolmtschr"
         headerRight={
           <div className="flex items-center gap-3">
             <Button

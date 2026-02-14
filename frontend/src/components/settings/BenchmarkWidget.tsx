@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Card } from '@oidanice/ink-ui'
-import { getRecentBenchmarks, BenchmarkEntry } from '../../api/inkonnect'
+import { getRecentBenchmarks, BenchmarkEntry } from '../../api/dolmtschr'
 
 function ms(v: number | null): string {
   if (v == null) return '--'

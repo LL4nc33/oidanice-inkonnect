@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react'
-import { SessionResponse, createSession, getSession } from '../api/inkonnect'
+import { SessionResponse, createSession, getSession } from '../api/dolmtschr'
 
 export function useSession() {
   const [session, setSession] = useState<SessionResponse | null>(null)

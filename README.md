@@ -1,7 +1,7 @@
-# inkonnect
+# dolmtschr
 
 <p align="center">
-  <img src="frontend/public/favicon.svg" alt="inkonnect" width="64" height="64" />
+  <img src="frontend/public/favicon.svg" alt="dolmtschr" width="64" height="64" />
 </p>
 
 <p align="center">
@@ -50,8 +50,8 @@
 ## Quick Start
 
 ```bash
-git clone https://github.com/LL4nc33/oidanice-inkonnect.git
-cd oidanice-inkonnect
+git clone https://github.com/LL4nc33/oidanice-dolmtschr.git
+cd oidanice-dolmtschr
 cp .env.example .env
 docker compose up -d
 

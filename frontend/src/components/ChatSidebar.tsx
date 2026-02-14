@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import { Button, Input, Progress } from '@oidanice/ink-ui'
-import { SessionResponse, searchMessages } from '../api/inkonnect'
+import { SessionResponse, searchMessages } from '../api/dolmtschr'
 import { SidebarSessionItem } from './SidebarSessionItem'
 
 interface ChatSidebarProps {

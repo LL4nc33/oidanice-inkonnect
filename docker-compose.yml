@@ -1,5 +1,5 @@
 services:
-  inkonnect:
+  dolmtschr:
     build: .
     ports:
       - "8100:8000"
@@ -11,7 +11,7 @@ services:
       - OLLAMA_URL=${OLLAMA_URL:-http://llm00.node:11434}
       - CHATTERBOX_URL=${CHATTERBOX_URL:-http://gpu00.node:4123}
       - CHATTERBOX_VOICE=${CHATTERBOX_VOICE:-default}
-      - DATABASE_URL=postgresql+asyncpg://inkonnect:${POSTGRES_PASSWORD:-inkonnect_dev}@postgres:5432/inkonnect
+      - DATABASE_URL=postgresql+asyncpg://dolmtschr:${POSTGRES_PASSWORD:-dolmtschr_dev}@postgres:5432/dolmtschr
       - HISTORY_ENABLED=${HISTORY_ENABLED:-true}
       - AUDIO_STORAGE_PATH=/app/data/audio
       - EMBEDDING_MODEL=${EMBEDDING_MODEL:-nomic-embed-text}
@@ -28,13 +28,13 @@ services:
   postgres:
     image: pgvector/pgvector:pg16
     environment:
-      POSTGRES_DB: inkonnect
-      POSTGRES_USER: inkonnect
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-inkonnect_dev}
+      POSTGRES_DB: dolmtschr
+      POSTGRES_USER: dolmtschr
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dolmtschr_dev}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U inkonnect"]
+      test: ["CMD-SHELL", "pg_isready -U dolmtschr"]
       interval: 5s
       timeout: 5s
       retries: 5

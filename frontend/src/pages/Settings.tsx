@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Card, Divider } from '@oidanice/ink-ui'
-import { getConfig } from '../api/inkonnect'
+import { getConfig } from '../api/dolmtschr'
 import { useProviderHealth } from '../hooks/useProviderHealth'
 import { SettingsNav } from '../components/settings/SettingsNav'
 import { ProviderStatusGrid } from '../components/settings/ProviderStatusGrid'
