@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react'
-import { Button } from '@oidanice/ink-ui'
 import { useVoiceRecorder } from '../hooks/useVoiceRecorder'
+import { useAudioVisualizer } from '../hooks/useAudioVisualizer'
+import { RecordButton } from './RecordButton'
+import { AudioWaveform } from './AudioWaveform'
 
 interface PipelineRecorderProps {
   onProcess: (blob: Blob) => void
@@ -13,10 +15,10 @@ interface PipelineRecorderProps {
 
 export function PipelineRecorder({ onProcess, disabled, autoStart, onRecordingStart, onRecordingChange, triggerToggle }: PipelineRecorderProps) {
   const recorder = useVoiceRecorder()
+  const levels = useAudioVisualizer(recorder.stream)
   const processedRef = useRef<Blob | null>(null)
   const autoStarted = useRef(false)
 
-  // Auto-start recording on mount when autoStart is true
   useEffect(() => {
     if (autoStart && !autoStarted.current && !recorder.isRecording) {
       autoStarted.current = true
@@ -29,7 +31,6 @@ export function PipelineRecorder({ onProcess, disabled, autoStart, onRecordingSt
     onRecordingChange?.(recorder.isRecording)
   }, [recorder.isRecording, onRecordingChange])
 
-  // Auto-process: when blob becomes available after stop, immediately process
   useEffect(() => {
     if (recorder.blob && recorder.blob !== processedRef.current) {
       processedRef.current = recorder.blob
@@ -55,16 +56,6 @@ export function PipelineRecorder({ onProcess, disabled, autoStart, onRecordingSt
     onRecordingStart?.()
   }
 
-  const handleStop = () => {
-    recorder.stop()
-  }
-
-  const formatDuration = (seconds: number): string => {
-    const m = Math.floor(seconds / 60)
-    const s = seconds % 60
-    return `${m}:${s.toString().padStart(2, '0')}`
-  }
-
   if (recorder.error) {
     return (
       <div className="font-mono text-sm p-3" style={{ color: 'var(--text)', border: '2px solid var(--border)' }}>
@@ -73,29 +64,16 @@ export function PipelineRecorder({ onProcess, disabled, autoStart, onRecordingSt
     )
   }
 
-  // Recording state
-  if (recorder.isRecording) {
-    return (
-      <Button
-        className="w-full py-4 text-base status-active"
-        onClick={handleStop}
-        aria-label="Stop recording"
-      >
-        [ stop · {formatDuration(recorder.duration)} ]
-      </Button>
-    )
-  }
-
-  // Idle state
   return (
-    <Button
-      variant="primary"
-      className="w-full py-4 text-base"
-      onClick={handleStart}
-      disabled={disabled}
-      aria-label="Start recording"
-    >
-      [ tap to record ]
-    </Button>
+    <div className="flex flex-col items-center gap-2">
+      <RecordButton
+        isRecording={recorder.isRecording}
+        duration={recorder.duration}
+        disabled={disabled}
+        onStart={handleStart}
+        onStop={recorder.stop}
+      />
+      {recorder.isRecording && <AudioWaveform levels={levels} />}
+    </div>
   )
 }

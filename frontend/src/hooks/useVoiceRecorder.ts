@@ -6,6 +6,7 @@ interface VoiceRecorderState {
   audioUrl: string | null
   duration: number
   error: string | null
+  stream: MediaStream | null
 }
 
 const INITIAL_STATE: VoiceRecorderState = {
@@ -14,6 +15,7 @@ const INITIAL_STATE: VoiceRecorderState = {
   audioUrl: null,
   duration: 0,
   error: null,
+  stream: null,
 }
 
 export function useVoiceRecorder() {
@@ -64,6 +66,7 @@ export function useVoiceRecorder() {
           isRecording: false,
           blob,
           audioUrl: url,
+          stream: null,
           error: null,
         }))
       }
@@ -71,13 +74,13 @@ export function useVoiceRecorder() {
       recorder.start()
       mediaRecorder.current = recorder
 
-      setState({ isRecording: true, blob: null, audioUrl: null, duration: 0, error: null })
+      setState({ isRecording: true, blob: null, audioUrl: null, duration: 0, error: null, stream })
 
       timerRef.current = setInterval(() => {
         setState((prev) => ({ ...prev, duration: prev.duration + 1 }))
       }, 1000)
     } catch {
-      setState({ ...INITIAL_STATE, error: 'Microphone access denied' })
+      setState({ ...INITIAL_STATE, stream: null, error: 'Microphone access denied' })
     }
   }, [clearTimer, revokeUrl])
 

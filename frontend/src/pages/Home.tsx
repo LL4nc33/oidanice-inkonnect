@@ -1,9 +1,8 @@
 import { useState, useRef, useCallback } from 'react'
-import { Divider, Progress } from '@oidanice/ink-ui'
-import { pipeline, ProviderOptions, warmupGpu, SynthesisParams, ElevenLabsParams, MessageResponse } from '../api/dolmtschr'
+import { Progress } from '@oidanice/ink-ui'
+import { pipeline, ProviderOptions, warmupGpu, SynthesisParams, ElevenLabsParams, MessageResponse, createSession, updateSession } from '../api/dolmtschr'
 import { PipelineRecorder } from '../components/PipelineRecorder'
-import { TranscriptDisplay } from '../components/TranscriptDisplay'
-import { SpeakButton } from '../components/SpeakButton'
+import { TranscriptBubble } from '../components/TranscriptBubble'
 import { LanguageSelector } from '../components/LanguageSelector'
 import { ErrorCard } from '../components/ErrorCard'
 import { ResultActions } from '../components/ResultActions'
@@ -38,6 +37,7 @@ interface HomeProps {
   elevenlabsVoiceId: string
   elevenlabsStability: number
   elevenlabsSimilarity: number
+  historyEnabled: boolean
   onSourceChange: (lang: string) => void
   onTargetChange: (lang: string) => void
   sessionId: string | null
@@ -45,6 +45,7 @@ interface HomeProps {
   messages: MessageResponse[]
   onEndSession: () => void
   onMessageAppend: (msg: MessageResponse) => void
+  onAutoSession: (id: string) => void
 }
 
 type Phase = 'idle' | 'processing' | 'result' | 'error'
@@ -61,7 +62,7 @@ interface Result {
   ttsMs: number | null
 }
 
-export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoice, chatterboxVoice, chatterboxUrl, ollamaModel, ollamaUrl, translateProvider, openaiUrl, openaiKey, openaiModel, chatterboxExaggeration, chatterboxCfgWeight, chatterboxTemperature, autoPlay, ollamaKeepAlive, ollamaContextLength, deepLKey, deepLFree, elevenlabsKey, elevenlabsModel, elevenlabsVoiceId, elevenlabsStability, elevenlabsSimilarity, onSourceChange, onTargetChange, sessionId, sessionTitle, messages, onEndSession, onMessageAppend }: HomeProps) {
+export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoice, chatterboxVoice, chatterboxUrl, ollamaModel, ollamaUrl, translateProvider, openaiUrl, openaiKey, openaiModel, chatterboxExaggeration, chatterboxCfgWeight, chatterboxTemperature, autoPlay, ollamaKeepAlive, ollamaContextLength, deepLKey, deepLFree, elevenlabsKey, elevenlabsModel, elevenlabsVoiceId, elevenlabsStability, elevenlabsSimilarity, historyEnabled, onSourceChange, onTargetChange, sessionId, sessionTitle, messages, onEndSession, onMessageAppend, onAutoSession }: HomeProps) {
   const [phase, setPhase] = useState<Phase>('idle')
   const [result, setResult] = useState<Result | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -69,6 +70,7 @@ export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoi
   const [statusMessage, setStatusMessage] = useState('')
   const [autoStart, setAutoStart] = useState(false)
   const lastBlob = useRef<Blob | null>(null)
+  const autoSessionRef = useRef<string | null>(null)
 
   const handleRecordingChange = useCallback((recording: boolean) => {
     setStatusMessage(recording ? 'Recording started' : '')
@@ -84,13 +86,22 @@ export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoi
     lastBlob.current = blob
     setPhase('processing')
     setError(null)
-    try {
-      let providerOpts: ProviderOptions | undefined
-      if (translateProvider === 'openai' && openaiUrl) {
-        providerOpts = { provider: 'openai', apiUrl: openaiUrl, apiKey: openaiKey || undefined }
-      } else if (translateProvider === 'deepl' && deepLKey) {
-        providerOpts = { provider: 'deepl', apiKey: deepLKey, deeplFree: deepLFree }
+
+    // Auto-create session if history enabled and no active session
+    let activeSessionId = sessionId
+    if (!activeSessionId && historyEnabled) {
+      try {
+        const s = await createSession(sourceLang || 'auto', targetLang, ttsEnabled)
+        activeSessionId = s.id
+        autoSessionRef.current = s.id
+        onAutoSession(s.id)
+      } catch {
+        // Continue without session if creation fails
       }
+    }
+
+    try {
+      const providerOpts = buildProviderOpts(translateProvider, openaiUrl, openaiKey, deepLKey, deepLFree)
       const model = translateProvider === 'openai' ? openaiModel || undefined : ollamaModel || undefined
       const activeTtsProvider = ttsProvider === 'chatterbox' ? 'chatterbox'
         : ttsProvider === 'elevenlabs' ? 'elevenlabs' : undefined
@@ -105,21 +116,13 @@ export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoi
       const voice = ttsProvider === 'chatterbox' ? chatterboxVoice
         : ttsProvider === 'elevenlabs' ? undefined : piperVoice
       const res = await pipeline(
-        blob,
-        sourceLang || undefined,
-        targetLang,
-        ttsEnabled,
-        voice || undefined,
-        model,
-        providerOpts,
-        activeTtsProvider,
-        synthesisParams,
+        blob, sourceLang || undefined, targetLang, ttsEnabled,
+        voice || undefined, model, providerOpts, activeTtsProvider, synthesisParams,
         ttsProvider === 'chatterbox' ? chatterboxUrl || undefined : undefined,
         translateProvider === 'local' ? ollamaUrl || undefined : undefined,
         translateProvider === 'local' ? ollamaKeepAlive || undefined : undefined,
         translateProvider === 'local' && ollamaContextLength ? parseInt(ollamaContextLength, 10) : undefined,
-        elParams,
-        sessionId || undefined,
+        elParams, activeSessionId || undefined,
       )
       setResult({
         originalText: res.original_text,
@@ -133,10 +136,18 @@ export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoi
         ttsMs: res.tts_ms,
       })
       setPhase('result')
-      if (sessionId) {
+
+      // Auto-title session with first 50 chars of original text
+      if (autoSessionRef.current === activeSessionId && activeSessionId) {
+        autoSessionRef.current = null
+        const title = res.original_text.slice(0, 50)
+        updateSession(activeSessionId, { title }).catch(() => {})
+      }
+
+      if (activeSessionId) {
         onMessageAppend({
           id: crypto.randomUUID(),
-          session_id: sessionId,
+          session_id: activeSessionId,
           direction: 'source',
           original_text: res.original_text,
           translated_text: res.translated_text,
@@ -163,9 +174,7 @@ export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoi
   }
 
   const handleRetry = () => {
-    if (lastBlob.current) {
-      handleProcess(lastBlob.current)
-    }
+    if (lastBlob.current) handleProcess(lastBlob.current)
   }
 
   const handleReset = () => {
@@ -189,41 +198,24 @@ export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoi
 
   return (
     <div className="space-y-4">
-      {inSession ? (
-        <>
-          <SessionBar
-            sessionId={sessionId}
-            title={sessionTitle}
-            messageCount={messages.length}
-            onEnd={onEndSession}
-          />
+      {inSession && (
+        <SessionBar
+          sessionId={sessionId}
+          title={sessionTitle}
+          messageCount={messages.length}
+          onEnd={onEndSession}
+        />
+      )}
 
-          <LanguageSelector
-            sourceLang={sourceLang}
-            targetLang={targetLang}
-            onSourceChange={onSourceChange}
-            onTargetChange={onTargetChange}
-          />
+      <LanguageSelector
+        sourceLang={sourceLang}
+        targetLang={targetLang}
+        onSourceChange={onSourceChange}
+        onTargetChange={onTargetChange}
+      />
 
-          {messages.length > 0 && (
-            <MessageFeed messages={messages} sessionId={sessionId} />
-          )}
-        </>
-      ) : (
-        <>
-          <div className="flex items-center gap-3 font-mono text-xs" style={{ color: 'var(--text-secondary)' }}>
-            <Divider spacing="sm" className="flex-1" />
-            <span className="shrink-0">translate without logging</span>
-            <Divider spacing="sm" className="flex-1" />
-          </div>
-
-          <LanguageSelector
-            sourceLang={sourceLang}
-            targetLang={targetLang}
-            onSourceChange={onSourceChange}
-            onTargetChange={onTargetChange}
-          />
-        </>
+      {inSession && messages.length > 0 && (
+        <MessageFeed messages={messages} sessionId={sessionId} />
       )}
 
       {phase !== 'processing' && phase !== 'result' && phase !== 'error' && (
@@ -245,16 +237,18 @@ export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoi
 
       {phase === 'result' && result && (
         <>
-          <TranscriptDisplay
+          <TranscriptBubble
             originalText={result.originalText}
             detectedLang={result.detectedLang}
             translatedText={result.translatedText}
-            durationMs={result.durationMs}
+            targetLang={targetLang}
+            audioBase64={result.audio}
+            audioFormat={result.audioFormat}
+            autoPlay={autoPlay}
             sttMs={result.sttMs}
             translateMs={result.translateMs}
             ttsMs={result.ttsMs}
           />
-          <SpeakButton audioBase64={result.audio} audioFormat={result.audioFormat} autoPlay={autoPlay} />
           <ResultActions onRetry={handleRetry} onReset={handleReset} />
         </>
       )}
@@ -267,4 +261,10 @@ export function Home({ sourceLang, targetLang, ttsEnabled, ttsProvider, piperVoi
       </div>
     </div>
   )
+}
+
+function buildProviderOpts(provider: string, url: string, key: string, deepLKey: string, deepLFree: boolean): ProviderOptions | undefined {
+  if (provider === 'openai' && url) return { provider: 'openai', apiUrl: url, apiKey: key || undefined }
+  if (provider === 'deepl' && deepLKey) return { provider: 'deepl', apiKey: deepLKey, deeplFree: deepLFree }
+  return undefined
 }

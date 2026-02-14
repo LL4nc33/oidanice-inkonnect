@@ -27,6 +27,7 @@ interface AppSettings {
   elevenlabsVoiceId: string
   elevenlabsStability: number
   elevenlabsSimilarity: number
+  historyEnabled: boolean
 }
 
 const OLD_STORAGE_KEY = 'inkonnect-settings'
@@ -69,6 +70,7 @@ const DEFAULTS: AppSettings = {
   elevenlabsVoiceId: '',
   elevenlabsStability: 0.5,
   elevenlabsSimilarity: 0.75,
+  historyEnabled: true,
 }
 
 function load(): AppSettings {

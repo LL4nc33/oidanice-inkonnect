@@ -161,8 +161,13 @@ export function App() {
               sessionId={session?.id ?? null}
               sessionTitle={session?.title ?? null}
               messages={messages}
+              historyEnabled={settings.historyEnabled}
               onEndSession={handleEndSession}
               onMessageAppend={appendMessage}
+              onAutoSession={async (id) => {
+                await loadSession(id)
+                refreshSessions()
+              }}
             />
           )}
           {page === 'settings' && (
