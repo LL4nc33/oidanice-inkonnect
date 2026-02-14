@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
 
 // Inline SVG flag components — consistent across platforms, no emoji rendering issues
-function FlagSvg({ code, size = 20 }: { code: string; size?: number }) {
+function FlagSvg({ code, size = 24 }: { code: string; size?: number }) {
   const w = size
   const h = Math.round(size * 0.7)
-  const style = { width: w, height: h, display: 'inline-block', border: '1px solid var(--border)', verticalAlign: 'middle' }
+  const style = { width: w, height: h, display: 'inline-block', verticalAlign: 'middle' }
 
   // Simple flag representations using horizontal stripes / known patterns
   const flags: Record<string, JSX.Element> = {
@@ -135,7 +135,6 @@ function FlagSvg({ code, size = 20 }: { code: string; size?: number }) {
     <span
       style={{
         ...style,
-        border: '1px solid var(--border)',
         background: 'var(--bg-secondary, rgba(0,0,0,0.05))',
         fontSize: 9,
         fontFamily: 'ui-monospace, monospace',
@@ -249,7 +248,7 @@ function LangChip({ value, onChange, options, placeholder }: LangChipProps) {
   return (
     <div ref={ref} className="relative">
       <button className="lang-chip" onClick={() => setOpen(!open)}>
-        {value ? <FlagSvg code={value} size={20} /> : <GlobeIcon size={18} />}
+        {value ? <FlagSvg code={value} size={24} /> : <GlobeIcon size={22} />}
         <span className="font-mono text-sm font-bold">{label}</span>
         <span className="text-xs" style={{ opacity: 0.5 }}>▾</span>
       </button>
@@ -261,7 +260,7 @@ function LangChip({ value, onChange, options, placeholder }: LangChipProps) {
               className={`lang-dropdown-item ${l.code === value ? 'lang-dropdown-item--active' : ''}`}
               onClick={() => { onChange(l.code); setOpen(false) }}
             >
-              {l.code ? <FlagSvg code={l.code} size={18} /> : <GlobeIcon size={16} />}
+              {l.code ? <FlagSvg code={l.code} size={22} /> : <GlobeIcon size={20} />}
               <span>{l.label}</span>
               {l.code && <span className="font-mono text-xs" style={{ opacity: 0.5 }}>{l.code.toUpperCase()}</span>}
             </button>
