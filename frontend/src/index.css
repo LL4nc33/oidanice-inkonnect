@@ -16,7 +16,7 @@
   z-index: 1;
   width: 72px;
   height: 72px;
-  border-radius: 50%;
+  border-radius: 0;
   border: 3px solid var(--border);
   display: flex;
   align-items: center;
@@ -24,8 +24,9 @@
   cursor: pointer;
   transition: transform 0.15s ease, background-color 0.2s ease;
   color: var(--text);
+  box-shadow: 4px 4px 0 var(--border);
 }
-.record-btn:active { transform: scale(0.95); }
+.record-btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--border); }
 .record-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .record-btn--idle {
   background-color: var(--bg);
@@ -36,11 +37,12 @@
   border-color: #dc2626;
   color: #fff;
   animation: none;
+  box-shadow: 4px 4px 0 #991b1b;
 }
 .record-ripple {
   position: absolute;
   inset: -8px;
-  border-radius: 50%;
+  border-radius: 0;
   border: 2px solid #dc2626;
   animation: ripple 1.5s ease-out infinite;
   pointer-events: none;
@@ -61,17 +63,20 @@
   gap: 6px;
   padding: 6px 12px;
   border: 2px solid var(--border);
-  border-radius: 9999px;
+  border-radius: 0;
   background: var(--bg);
   cursor: pointer;
   color: var(--text);
   transition: border-color 0.15s;
+  box-shadow: 3px 3px 0 var(--border);
+  font-family: ui-monospace, monospace;
+  font-weight: 700;
 }
 .lang-chip:hover { border-color: var(--primary); }
 .lang-swap-btn {
   background: none;
   border: 2px solid var(--border);
-  border-radius: 50%;
+  border-radius: 0;
   width: 36px;
   height: 36px;
   font-size: 18px;
@@ -81,6 +86,7 @@
   align-items: center;
   justify-content: center;
   transition: transform 0.3s ease, border-color 0.15s;
+  box-shadow: 3px 3px 0 var(--border);
 }
 .lang-swap-btn:hover { border-color: var(--primary); }
 .lang-swap-btn:disabled { opacity: 0.3; cursor: not-allowed; }
@@ -94,7 +100,7 @@
   overflow-y: auto;
   background: var(--bg);
   border: 2px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   box-shadow: 4px 4px 0 var(--border);
   z-index: 50;
   padding: 4px;
@@ -109,8 +115,9 @@
   background: none;
   cursor: pointer;
   color: var(--text);
-  border-radius: 4px;
+  border-radius: 0;
   font-size: 14px;
+  font-family: ui-monospace, monospace;
   text-align: left;
 }
 .lang-dropdown-item:hover { background: var(--bg-secondary, rgba(0,0,0,0.05)); }
@@ -119,18 +126,18 @@
 /* ── Transcript Bubbles ────────────────────────── */
 .bubble {
   padding: 12px 16px;
-  border-radius: 16px;
+  border-radius: 0;
   border: 2px solid var(--border);
+  box-shadow: 4px 4px 0 var(--border);
 }
 .bubble--original {
   background: var(--bg);
-  border-bottom-left-radius: 4px;
 }
 .bubble--translation {
   background: var(--primary, #3b82f6);
   color: #fff;
   border-color: var(--primary, #3b82f6);
-  border-bottom-right-radius: 4px;
+  box-shadow: 4px 4px 0 color-mix(in srgb, var(--primary, #3b82f6) 70%, black);
 }
 .bubble-footer {
   display: flex;
@@ -147,7 +154,7 @@
   cursor: pointer;
   font-size: 16px;
   padding: 2px 4px;
-  border-radius: 4px;
+  border-radius: 0;
   color: inherit;
   opacity: 0.7;
 }

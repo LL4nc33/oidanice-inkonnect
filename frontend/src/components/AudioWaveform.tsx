@@ -8,7 +8,7 @@ export function AudioWaveform({ levels }: AudioWaveformProps) {
       {levels.map((level, i) => (
         <div
           key={i}
-          className="rounded-full"
+          className=""
           style={{
             width: 4,
             height: Math.max(4, level * 30),
