@@ -455,3 +455,28 @@ async def get_elevenlabs_usage(
         character_count=data.get("character_count", 0),
         character_limit=data.get("character_limit", 0),
     )
+
+
+@router.get("/profiles")
+async def list_profiles() -> list[dict]:
+    """Alle verfügbaren Industry-Profile zurückgeben."""
+    from backend.profiles import get_all_profiles
+    profiles = get_all_profiles()
+    return [
+        {
+            "id": p.id,
+            "name": p.name,
+            "icon": p.icon,
+            "description": p.description,
+            "quick_languages": [
+                {"source": s, "target": t} for s, t in p.quick_languages
+            ],
+            "defaults": {
+                "audio_enabled": p.audio_enabled_default,
+                "tts_enabled": p.tts_enabled_default,
+                "retention_days": p.default_retention_days,
+                "recommended_model": p.recommended_model,
+            },
+        }
+        for p in profiles
+    ]

@@ -26,7 +26,11 @@ class OllamaLocalProvider(TranslateProvider):
         if not text.strip():
             return ""
 
-        system = SYSTEM_PROMPT.format(source=source, target=target)
+        custom_prompt: str | None = kwargs.get("system_prompt")  # type: ignore[assignment]
+        if custom_prompt:
+            system = custom_prompt  # bereits formatiert (source/target gefüllt)
+        else:
+            system = SYSTEM_PROMPT.format(source=source, target=target)
 
         keep_alive = str(kwargs.get("keep_alive") or "3m")
         options: dict[str, object] = {"temperature": 0.3}
