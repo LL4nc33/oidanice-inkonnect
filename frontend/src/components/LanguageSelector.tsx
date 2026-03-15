@@ -119,13 +119,52 @@ function FlagSvg({ code, size = 24 }: { code: string; size?: number }) {
         <path d="M15 5 Q20 10 15 15 Q10 10 15 5" fill="#003478" />
       </svg>
     ),
+    ro: (
+      <svg viewBox="0 0 30 20" style={style}>
+        <rect width="10" height="20" fill="#002B7F" />
+        <rect x="10" width="10" height="20" fill="#FCD116" />
+        <rect x="20" width="10" height="20" fill="#CE1126" />
+      </svg>
+    ),
+    hu: (
+      <svg viewBox="0 0 30 20" style={style}>
+        <rect width="30" height="7" fill="#CE2939" />
+        <rect y="7" width="30" height="6" fill="#fff" />
+        <rect y="13" width="30" height="7" fill="#477050" />
+      </svg>
+    ),
+    rs: (
+      <svg viewBox="0 0 30 20" style={style}>
+        <rect width="30" height="7" fill="#C6363C" />
+        <rect y="7" width="30" height="6" fill="#0C4076" />
+        <rect y="13" width="30" height="7" fill="#fff" />
+      </svg>
+    ),
+    ba: (
+      <svg viewBox="0 0 30 20" style={style}>
+        <rect width="30" height="20" fill="#002395" />
+        <polygon points="8,0 22,20 8,20" fill="#FECB00" />
+        <circle cx="9" cy="2" r="1.2" fill="#fff" /><circle cx="11" cy="5" r="1.2" fill="#fff" />
+        <circle cx="13" cy="8" r="1.2" fill="#fff" /><circle cx="15" cy="11" r="1.2" fill="#fff" />
+        <circle cx="17" cy="14" r="1.2" fill="#fff" /><circle cx="19" cy="17" r="1.2" fill="#fff" />
+      </svg>
+    ),
+    hr_flag: (
+      <svg viewBox="0 0 30 20" style={style}>
+        <rect width="30" height="7" fill="#FF0000" />
+        <rect y="7" width="30" height="6" fill="#fff" />
+        <rect y="13" width="30" height="7" fill="#171796" />
+        <rect x="11" y="4" width="8" height="8" fill="#FF0000" stroke="#fff" strokeWidth="0.5" />
+      </svg>
+    ),
   }
 
   // Map language codes to country codes
   const langToCountry: Record<string, string> = {
     de: 'at', en: 'gb', ar: 'sa', tr: 'tr', ru: 'ru', ja: 'jp',
     zh: 'cn', fr: 'fr', es: 'es', it: 'it', pt: 'pt', nl: 'nl',
-    pl: 'pl', uk: 'ua', fa: 'ir', ko: 'kr',
+    pl: 'pl', uk: 'ua', fa: 'ir', ko: 'kr', ro: 'ro', hu: 'hu',
+    sr: 'rs', bs: 'ba', hr: 'hr_flag',
   }
 
   const countryCode = langToCountry[code]
@@ -175,6 +214,11 @@ const LANGUAGES = [
   { code: 'zh', label: '中文' },
   { code: 'ko', label: '한국어' },
   { code: 'ar', label: 'العربية' },
+  { code: 'ro', label: 'Română' },
+  { code: 'hu', label: 'Magyar' },
+  { code: 'sr', label: 'Srpski' },
+  { code: 'hr', label: 'Hrvatski' },
+  { code: 'bs', label: 'Bosanski' },
   { code: 'tr', label: 'Türkçe' },
   { code: 'fa', label: 'فارسی' },
 ]
